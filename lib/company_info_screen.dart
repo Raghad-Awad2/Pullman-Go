@@ -131,8 +131,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],
-                      ),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],                      ),
                       child: CircleAvatar(
                         radius: 65,
                         backgroundColor: Colors.white,
@@ -160,12 +159,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                   style: const TextStyle(color: Colors.blueGrey, fontSize: 15, fontStyle: FontStyle.italic),
                 ),
               ),
-              const SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) => Icon(Icons.star_rounded, color: Colors.amber[600], size: 22)),
-              ),
-              const SizedBox(height: 25),
+              const SizedBox(height: 25), // تم الحفاظ على المسافة لتناسق العناصر بعد إزالة النجوم
               if (featuresList.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),

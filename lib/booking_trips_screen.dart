@@ -69,6 +69,29 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
     }
   }
 
+  // دالة مخصصة لتحويل الوقت من نظام 24 ساعة إلى نظام 12 ساعة مع إضافة م / ص باللغة العربية
+  String _formatTo12Hour(String time24) {
+    try {
+      List<String> parts = time24.split(':');
+      int hour = int.parse(parts[0]);
+      int minute = int.parse(parts[1]);
+
+      String period = "ص";
+      if (hour >= 12) {
+        period = "م";
+        if (hour > 12) hour -= 12;
+      }
+      if (hour == 0) hour = 12;
+
+      String strHour = hour.toString().padLeft(2, '0');
+      String strMinute = minute.toString().padLeft(2, '0');
+
+      return "$strHour:$strMinute $period";
+    } catch (e) {
+      return time24; // في حال حدوث أي خطأ غير متوقع يعود بالوقت الأصلي لحماية التطبيق من الانهيار
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -252,7 +275,8 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
       print("Error parsing date/time: $e");
     }
 
-    String displayTime = time.length >= 5 ? time.substring(0, 5) : time;
+    // تطبيق الدالة الجديدة هنا لتحويل الوقت المعروض إلى نظام 12 ساعة
+    String displayTime = _formatTo12Hour(time.length >= 5 ? time.substring(0, 5) : time);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -274,7 +298,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                   fromCity: widget.fromCity,
                   toCity: widget.toCity,
                   selectedDate: widget.selectedDate,
-                  tripTime: time,
+                  tripTime: time, // يتم تمرير الوقت الأصلي بصيغة 24 لضمان عمل المعالجات الخلفية والـ API بشكل طبيعي
                 ),
               ),
             );

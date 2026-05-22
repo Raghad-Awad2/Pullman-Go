@@ -30,11 +30,24 @@ class TravelRoute {
       fullLogoUrl = "http://localhost:8000/companies-logos/$fileName";
     }
 
+    // معالجة السعر للتخلص من الفواصل العشرية والأصفار الزائدة .00 بشكل آمن
+    String formattedPrice = "0";
+    if (json['base_price'] != null) {
+      var rawPrice = json['base_price'];
+      if (rawPrice is num) {
+        formattedPrice = rawPrice.toInt().toString();
+      } else {
+        // في حال كان السعر قادم كنص يحتوي على فواصل مثل "250.00"
+        double? parsedDouble = double.tryParse(rawPrice.toString());
+        formattedPrice = parsedDouble != null ? parsedDouble.toInt().toString() : rawPrice.toString();
+      }
+    }
+
     return TravelRoute(
       id: json['id'],
       companyName: companyJson['name'] ?? "شركة غير معروفة",
       companyLogo: fullLogoUrl,
-      price: json['base_price'].toString(),
+      price: formattedPrice, // السعر المعدل الخالي من الفواصل
       startTime: json['estimated_time'] ?? "غير محدد",
       fullCompanyData: companyJson,
     );
