@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'passenger_details_screen.dart';
 
 class SeatSelectionScreen extends StatefulWidget {
@@ -24,21 +25,19 @@ class SeatSelectionScreen extends StatefulWidget {
 }
 
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
-  final Color primaryGreen = const Color(0xFF2ECC71);
+  final Color primaryGreen = const Color(0xFF2ECC71); // الأخضر الغامق للتحديد والتأكيد
+  final Color lightAvailableGreen = const Color(0xFFA3E4D7); // الأخضر الفاتح للمقاعد المتاحة
   final Color navyColor = const Color(0xFF1A237E);
   List<int> selectedSeats = [];
 
-  // قائمة المقاعد المحجوزة
-  final List<int> reservedSeats = [5, 6, 11, 12, 25];
+  // قائمة المقاعد المحجوزة مسبقاً
+  final List<int> reservedSeats = [5, 6, 11, 12, 25, 33];
 
-  // القائمة المنسدلة للتاريخ
   late String currentSelectedDate;
-  final List<String> offerDays = ["اليوم الأول من العرض", "اليوم الثاني من العرض", "اليوم الثالث من العرض"];
 
   @override
   void initState() {
     super.initState();
-    // جعل التاريخ الافتراضي هو القادم من صفحة العروض أو أول يوم في القائمة
     currentSelectedDate = widget.selectedDate;
   }
 
@@ -47,103 +46,250 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF8F9FA), // خلفية أهدأ وأكثر عصرية للواجهة
         appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text("احجز رحلتك الآن...",
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+          backgroundColor: Colors.white,
+          elevation: 0.8,
+          title: const Text(
+            "تحديد المقاعد",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
+          ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 18),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (widget.companyName != null) ...[
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: primaryGreen.withOpacity(0.3)),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
+                      border: Border.all(color: Colors.grey.shade100),
                     ),
                     child: Column(
                       children: [
                         Text(widget.companyName!,
-                            style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 18)),
+                            style: TextStyle(color: navyColor, fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 6),
                         Text(widget.tripRoute ?? "",
-                            style: const TextStyle(color: Colors.black54, fontSize: 14)),
+                            style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                 ],
 
-                const Text("مسار الرحلة:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 15),
-
-                _buildLocationCard(widget.fromCity, "محطة الانطلاق: كراجات شرقي_غربي"),
-                const SizedBox(height: 10),
-                _buildLocationCard(widget.toCity, "محطة الوصول: نهر عيشة"),
-
-                const SizedBox(height: 25),
-                const Center(
-                  child: Text("يرجى تحديد موعد الرحلة المناسب لك واختيار المقاعد",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                // الكارد العلوي المدمج للمحافظات والتاريخ والوقت
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
+                    border: Border.all(color: Colors.grey.shade100),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Column(
+                            children: [
+                              Icon(Icons.circle, size: 9, color: primaryGreen),
+                              Container(width: 1.5, height: 26, color: Colors.grey.shade300),
+                              const Icon(Icons.location_on, size: 14, color: Colors.redAccent),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(widget.fromCity, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                                    const SizedBox(width: 4),
+                                    const Text("(كراجات شرقي_غربي)", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Text(widget.toCity, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                                    const SizedBox(width: 4),
+                                    const Text("(نهر عيشة)", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFF5F5F5)),
+                      const SizedBox(height: 16),
+                      // صف التاريخ الثابت والوقت
+                      Row(
+                        children: [
+                          Expanded(child: _buildCompactInfoField("تاريخ الرحلة", currentSelectedDate, Icons.calendar_month)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildCompactInfoField("وقت الانطلاق", widget.tripTime, Icons.watch_later)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
 
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    // تم تعديل حقل التاريخ هنا ليصبح قائمة منسدلة
-                    Expanded(child: _buildDateDropdown()),
-                    const SizedBox(width: 15),
-                    Expanded(child: _buildInfoBox("وقت الانطلاق", widget.tripTime, Icons.watch_later)),
-                  ],
+                const SizedBox(height: 24),
+                const Text(
+                  "حدد عدد المقاعد التي تريد حجزها لهذه الرحلة",
+                  style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 16),
+
+                // هيكل الحافلة المطور بلمسات جمالية انسيابية
+                Center(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width > 450 ? 360 : double.infinity,
+                    padding: const EdgeInsets.only(top: 12, bottom: 24, left: 24, right: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(35),
+                      border: Border.all(color: Colors.grey.shade200, width: 2),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // تمثيل زجاج مقدمة الباص الجمالي العلوي
+                        Container(
+                          width: 60,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // كابينة الشوفير الأمامية بمقعد مريح ومستقل
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Icon(Icons.tune_rounded, color: Colors.grey.shade400, size: 22),
+                              Column(
+                                children: [
+                                  Icon(Icons.airline_seat_recline_normal_rounded, color: Colors.grey.shade800, size: 28),
+                                  const SizedBox(height: 2),
+                                  Text("السائق", style: TextStyle(fontSize: 10, color: Colors.grey.shade800, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Divider(thickness: 1, color: Colors.grey.shade100, height: 10),
+                        const SizedBox(height: 12),
+
+                        // شبكة المقاعد الانسيابية المستقلة
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: 35,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 5,
+                            mainAxisSpacing: 14, // أبعاد ممتازة لمنع تداخل النصوص مع الأيقونات
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 0.85,
+                          ),
+                          itemBuilder: (context, index) {
+                            if (index % 5 == 2) {
+                              return const SizedBox(); // ممر الركاب مفرغ
+                            }
+
+                            int currentSeat = seatCounter(index);
+                            return _buildIndependentSeatItem(currentSeat);
+                          },
+                        ),
+                        const SizedBox(height: 14),
+
+                        // الصف الأخير الخلفي المكون من 5 كراسي
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(5, (index) {
+                            int backSeatNum = 29 + index;
+                            return Expanded(
+                              child: _buildIndependentSeatItem(backSeatNum),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
 
-                const SizedBox(height: 30),
-                const Center(
-                  child: Text("حدد عدد المقاعد التي ترى حجزها لهذه الرحلة",
-                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 13)),
-                ),
-
-                _buildBusLayout(),
-
-                const SizedBox(height: 20),
+                // حالة وإحصائيات المقاعد
+                const SizedBox(height: 24),
                 _buildSeatStats(),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 24),
                 Center(
-                  child: SizedBox(
+                  child: Container(
                     width: double.infinity,
-                    height: 55,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: selectedSeats.isEmpty ? [] : [
+                        BoxShadow(
+                          color: primaryGreen.withOpacity(0.25),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
                     child: ElevatedButton(
                       onPressed: selectedSeats.isEmpty ? null : () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PassengerDetailsScreen(selectedSeats: selectedSeats),
+                            builder: (context) => PassengerDetailsScreen(
+                              selectedSeats: selectedSeats,
+                              pricePerSeat: 400, // السعر الافتراضي لكل مقعد والمستخدم في الحسابات
+                              fromCity: widget.fromCity,
+                              toCity: widget.toCity,
+                              travelDate: currentSelectedDate,
+                            ),
                           ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryGreen,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 0,
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("التالي", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                          SizedBox(width: 10),
-                          Icon(Icons.arrow_forward, color: Colors.white),
+                          Text(
+                            selectedSeats.isEmpty ? "التالي" : "التالي (${selectedSeats.length} مقاعد)",
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                         ],
                       ),
                     ),
@@ -157,184 +303,121 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
-  // ويدجت القائمة المنسدلة للتاريخ
-  Widget _buildDateDropdown() {
+  int seatCounter(int index) {
+    int row = index ~/ 5;
+    int col = index % 5;
+    return row * 4 + (col > 2 ? col : col + 1);
+  }
+
+  Widget _buildCompactInfoField(String label, String value, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("تاريخ الرحلة", style: TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 8),
+        Row(
+          children: [
+            Icon(icon, size: 14, color: Colors.grey.shade500),
+            const SizedBox(width: 4),
+            Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontWeight: FontWeight.w500)),
+          ],
+        ),
+        const SizedBox(height: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFF8F9FA),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: Colors.grey.shade200, width: 0.5),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: offerDays.contains(currentSelectedDate) ? currentSelectedDate : null,
-              hint: Text(currentSelectedDate, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black)),
-              isExpanded: true,
-              icon: const Icon(Icons.calendar_month, size: 18, color: Colors.black),
-              items: offerDays.map((String day) {
-                return DropdownMenuItem<String>(
-                  value: day,
-                  child: Text(day, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    currentSelectedDate = newValue;
-                  });
-                }
-              },
-            ),
+          child: Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black87),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLocationCard(String city, String station) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(backgroundColor: primaryGreen, radius: 5),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(city, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              Text(station, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // بناء الكرسي المستقل بالأيقونة الاحترافية والمحسنة جمالياً
+  Widget _buildIndependentSeatItem(int seatNum) {
+    bool isReserved = reservedSeats.contains(seatNum);
+    bool isSelected = selectedSeats.contains(seatNum);
 
-  Widget _buildInfoBox(String title, String value, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Icon(icon, size: 18, color: Colors.black),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+    // دقة واحترافية الألوان طبقاً لطلبك مع تحسين درجات التباين
+    Color iconColor = isReserved
+        ? Colors.grey.shade300
+        : (isSelected ? primaryGreen : lightAvailableGreen);
 
-  Widget _buildBusLayout() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 20),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 40,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
+    Color textColor = isReserved
+        ? Colors.grey.shade400
+        : (isSelected ? primaryGreen : Colors.black87);
+
+    return GestureDetector(
+      onTap: isReserved ? null : () {
+        setState(() {
+          if (isSelected) {
+            selectedSeats.remove(seatNum);
+          } else {
+            if (selectedSeats.length < 10) {
+              selectedSeats.add(seatNum);
+            }
+          }
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeIn,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.event_seat_rounded, // تم تغيير شكل الأيقونة لتصبح أكثر انسيابية وجمالية للـ UI
+              color: iconColor,
+              size: 26,
             ),
-            itemBuilder: (context, index) {
-              if (index % 5 == 2) return const SizedBox();
-
-              int seatNum = index + 1;
-              bool isReserved = reservedSeats.contains(seatNum);
-              bool isSelected = selectedSeats.contains(seatNum);
-
-              return GestureDetector(
-                onTap: isReserved ? null : () {
-                  setState(() {
-                    if (isSelected) {
-                      selectedSeats.remove(seatNum);
-                    } else {
-                      if (selectedSeats.length < 10) {
-                        selectedSeats.add(seatNum);
-                      }
-                    }
-                  });
-                },
-                child: Icon(
-                  Icons.event_seat,
-                  color: isReserved ? Colors.red : (isSelected ? primaryGreen : Colors.grey.shade300),
-                  size: 30,
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          const Text("الحد الأقصى 10 مقاعد للرحلة الواحدة", style: TextStyle(color: Colors.red, fontSize: 10)),
-        ],
+            const SizedBox(height: 3),
+            Text(
+              seatNum.toString(),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSeatStats() {
-    int totalActualSeats = 32;
+    int totalActualSeats = 33;
     int availableCount = totalActualSeats - reservedSeats.length;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _statBox("المقاعد المتاحة", availableCount.toString(), Colors.grey.shade300),
-        _statBox("المقاعد المحجوزة", reservedSeats.length.toString(), Colors.red),
-        _statBox("محدد", selectedSeats.length.toString(), primaryGreen),
-      ],
+    return Container(
+      width: MediaQuery.of(context).size.width > 450 ? 360 : double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _statBox("متاح", availableCount.toString(), lightAvailableGreen),
+          _statBox("محجوز", reservedSeats.length.toString(), Colors.grey.shade300),
+          _statBox("محدد", selectedSeats.length.toString(), primaryGreen),
+        ],
+      ),
     );
   }
 
   Widget _statBox(String label, String count, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              Text(count, style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(width: 5),
-              Icon(Icons.event_seat, size: 15, color: color),
-            ],
-          )
-        ],
-      ),
+    return Row(
+      children: [
+        Icon(Icons.event_seat_rounded, size: 18, color: color),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
+        const SizedBox(width: 4),
+        Text(count, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black87)),
+      ],
     );
   }
 }

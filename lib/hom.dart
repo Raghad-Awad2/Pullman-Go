@@ -261,7 +261,7 @@ class _BusSearchFormState extends State<BusSearchForm> {
   Future<void> _fetchCities() async {
     try {
       // تم استخدام الـ IP الموجود في ملف الـ .env الخاص بك
-      final response = await Dio().get('http://10.198.23.108:8000/api/cities');
+      final response = await Dio().get('http://localhost:8000/api/cities');
       if (response.statusCode == 200) {
         List data = response.data['data'];
         setState(() {
