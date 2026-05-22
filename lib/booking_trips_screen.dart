@@ -88,7 +88,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
 
       return "$strHour:$strMinute $period";
     } catch (e) {
-      return time24; // في حال حدوث أي خطأ غير متوقع يعود بالوقت الأصلي لحماية التطبيق من الانهيار
+      return time24; // حماية التطبيق من الانهيار في حال الخطأ
     }
   }
 
@@ -239,16 +239,16 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
         if (activeTab == 2) return hour >= 12;
       } catch (e) { print(e); }
       return true;
-    }).map((t) => _buildTripCard(t['scheduled_time']?.toString() ?? "00:00")).toList();
+    }).map((t) => _buildTripCard(t)).toList();
   }
 
-  Widget _buildTripCard(String time) {
-    // منطق فحص هل وقت الرحلة انتهى أم لا
+  Widget _buildTripCard(Map<String, dynamic> tripData) {
+    String time = tripData['scheduled_time']?.toString() ?? "00:00";
+
     DateTime now = DateTime.now();
     bool isPast = false;
 
     try {
-      // 1. تحويل التاريخ المختار لـ DateTime (بشكل مرن)
       DateTime selectedDate;
       List<String> dateParts = widget.selectedDate.split(RegExp(r'[/-]'));
       if (dateParts[0].length < 4) {
@@ -257,7 +257,6 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
         selectedDate = DateTime.parse(widget.selectedDate);
       }
 
-      // 2. تحويل وقت الرحلة لـ DateTime للمقارنة
       List<String> timeParts = time.split(':');
       DateTime tripDateTime = DateTime(
         selectedDate.year,
@@ -267,7 +266,6 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
         int.parse(timeParts[1]),
       );
 
-      // 3. المقارنة
       if (tripDateTime.isBefore(now)) {
         isPast = true;
       }
@@ -275,13 +273,12 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
       print("Error parsing date/time: $e");
     }
 
-    // تطبيق الدالة الجديدة هنا لتحويل الوقت المعروض إلى نظام 12 ساعة
     String displayTime = _formatTo12Hour(time.length >= 5 ? time.substring(0, 5) : time);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
-        color: isPast ? Colors.grey[100] : Colors.white, // تغيير اللون إذا انتهت
+        color: isPast ? Colors.grey[100] : Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           if (!isPast) BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)
@@ -290,15 +287,31 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
-          onTap: isPast ? null : () { // منع الضغط إذا انتهت الرحلة
+          onTap: isPast ? null : () {
+            var routeData = tripData['route'] ?? {};
+            String? fromStation = tripData['departure_address'] ?? routeData['departure_address'];
+            String? toStation = tripData['arrival_address'] ?? routeData['arrival_address'];
+
+            var busData = tripData['bus'] ?? {};
+            int dynamicTotalSeats = busData['total_seats'] ?? 35;
+
+            // 💡 مطابقة حقل قاعدة البيانات بدقة تامة لإنهاء الـ Null
+            String dynamicBusNumber = busData['bus_numbernnn']?.toString() ?? "غير محدد";
+
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => SeatSelectionScreen(
+                  tripId: tripData['id'],
                   fromCity: widget.fromCity,
                   toCity: widget.toCity,
                   selectedDate: widget.selectedDate,
-                  tripTime: time, // يتم تمرير الوقت الأصلي بصيغة 24 لضمان عمل المعالجات الخلفية والـ API بشكل طبيعي
+                  tripTime: time,
+                  fromStation: fromStation?.toString(),
+                  toStation: toStation?.toString(),
+                  companyName: widget.companyName,
+                  totalSeats: dynamicTotalSeats,
+                  busNumber: dynamicBusNumber,
                 ),
               ),
             );
@@ -330,7 +343,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
                             color: isPast ? Colors.grey[400] : const Color(0xFF2D3436),
-                            decoration: isPast ? TextDecoration.lineThrough : null // تشطيب الخط للرحلة المنتهية
+                            decoration: isPast ? TextDecoration.lineThrough : null
                         ),
                       ),
                       const SizedBox(height: 4),

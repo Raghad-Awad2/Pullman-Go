@@ -39,14 +39,13 @@ class OffersScreen extends StatelessWidget {
                       Text(company, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 8),
 
-                      // السهم الأسود بالاتجاه الصحيح (من دمشق إلى الوجهة)
                       Row(
                         children: [
                           Text(fromCity, style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: Icon(
-                                Icons.arrow_forward, // يشير لليسر في الـ RTL (من الانطلاق للوصول)
+                                Icons.arrow_forward,
                                 color: Colors.black,
                                 size: 20
                             ),
@@ -90,11 +89,16 @@ class OffersScreen extends StatelessWidget {
                         builder: (context) => SeatSelectionScreen(
                           fromCity: fromCity,
                           toCity: toCity,
-                          // تعديل بسيط هنا ليتناسب مع القائمة المنسدلة في صفحة السيت
                           selectedDate: "اختر يوم العرض",
                           tripTime: "حسب التوفر",
                           companyName: company,
                           tripRoute: "$fromCity ← $toCity",
+
+                          // بيانات وهمية آمنة ومستقرة تماماً ولا تسبب أي خطأ نوع (Type Mismatch)
+                          totalSeats: 35,
+                          busNumber: "عرض خاص",
+                          fromStation: "انطلاق دمشق",
+                          toStation: "كراج الوصول",
                         ),
                       ),
                     );

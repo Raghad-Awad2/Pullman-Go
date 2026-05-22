@@ -1,23 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:dio/dio.dart'; // 👈 استيراد مكتبة الـ Dio للاتصال بالـ API
 import 'passenger_details_screen.dart';
 
 class SeatSelectionScreen extends StatefulWidget {
+  final int? tripId; // 👈 استقبال معرف الرحلة
   final String fromCity;
   final String toCity;
   final String selectedDate;
   final String tripTime;
   final String? companyName;
   final String? tripRoute;
+  final String? fromStation;
+  final String? toStation;
+  final int? totalSeats;
+  final String? busNumber;
 
   const SeatSelectionScreen({
     super.key,
+    this.tripId,
     required this.fromCity,
     required this.toCity,
     required this.selectedDate,
     required this.tripTime,
     this.companyName,
     this.tripRoute,
+    this.fromStation,
+    this.toStation,
+    this.totalSeats,
+    this.busNumber,
   });
 
   @override
@@ -25,13 +36,13 @@ class SeatSelectionScreen extends StatefulWidget {
 }
 
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
-  final Color primaryGreen = const Color(0xFF2ECC71); // الأخضر الغامق للتحديد والتأكيد
-  final Color lightAvailableGreen = const Color(0xFFA3E4D7); // الأخضر الفاتح للمقاعد المتاحة
+  final Color primaryGreen = const Color(0xFF2ECC71);
+  final Color lightAvailableGreen = const Color(0xFFA3E4D7);
   final Color navyColor = const Color(0xFF1A237E);
-  List<int> selectedSeats = [];
 
-  // قائمة المقاعد المحجوزة مسبقاً
-  final List<int> reservedSeats = [5, 6, 11, 12, 25, 33];
+  List<int> selectedSeats = [];
+  List<int> reservedSeats = []; // 👈 أصبحت ديناميكية وفارغة افتراضياً لتمثيل الداتابيز الحقيقية
+  bool isSeatsLoading = true;    // مؤشر تحميل خاص بالمقاعد
 
   late String currentSelectedDate;
 
@@ -39,14 +50,85 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   void initState() {
     super.initState();
     currentSelectedDate = widget.selectedDate;
+    fetchReservedSeats(); // 👈 استدعاء جلب المقاعد المحجوزة فوراً عند بناء الشاشة
+  }
+
+  // 👈 دالة الاتصال بالـ Laravel لطلب المقاعد المحجوزة فعلياً للرحلة والتاريخ المحددين
+  Future<void> fetchReservedSeats() async {
+    if (widget.tripId == null) {
+      setState(() => isSeatsLoading = false);
+      return; // إذا كانت قادمة من شاشة العروض كبيانات وهمية لا تفعل شيئاً
+    }
+
+    try {
+      final response = await Dio().get(
+        'http://127.0.0.1:8000/api/get-reserved-seats',
+        queryParameters: {
+          'trip_id': widget.tripId,
+          'travel_date': widget.selectedDate,
+        },
+      );
+
+      if (response.data['status'] == true) {
+        setState(() {
+          // تحويل البيانات القادمة من الباك أند إلى مصفوفة من الأرقام بشكل آمن
+          reservedSeats = List<int>.from(response.data['reserved_seats']);
+          isSeatsLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching reserved seats: $e");
+      setState(() => isSeatsLoading = false);
+    }
+  }
+
+  String _formatTo12Hour(String timeString) {
+    try {
+      final parts = timeString.split(':');
+      if (parts.length < 2) return timeString;
+
+      int hour = int.parse(parts[0]);
+      int minute = int.parse(parts[1]);
+
+      String period = "ص";
+      if (hour >= 12) {
+        period = "م";
+        if (hour > 12) hour -= 12;
+      } else if (hour == 0) {
+        hour = 12;
+      }
+
+      final minuteStr = minute.toString().padLeft(2, '0');
+      final hourStr = hour.toString().padLeft(2, '0');
+
+      return "$hourStr:$minuteStr $period";
+    } catch (e) {
+      return timeString;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    int activeTotalSeats = widget.totalSeats ?? 35;
+    String activeBusNumber = (widget.busNumber != null && widget.busNumber!.isNotEmpty) ? widget.busNumber! : "عرض خاص";
+
+    String displayFromStation = (widget.fromStation != null && widget.fromStation!.isNotEmpty)
+        ? widget.fromStation!
+        : "كراجات شرقي_غربي";
+
+    String displayToStation = (widget.toStation != null && widget.toStation!.isNotEmpty)
+        ? widget.toStation!
+        : "نهر عيشة";
+
+    String formattedTime = _formatTo12Hour(widget.tripTime);
+
+    int rowCount = (activeTotalSeats / 4).ceil();
+    int gridItemCount = rowCount * 5;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA), // خلفية أهدأ وأكثر عصرية للواجهة
+        backgroundColor: const Color(0xFFF8F9FA),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0.8,
@@ -67,29 +149,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (widget.companyName != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(widget.companyName!,
-                            style: TextStyle(color: navyColor, fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 6),
-                        Text(widget.tripRoute ?? "",
-                            style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
                 // الكارد العلوي المدمج للمحافظات والتاريخ والوقت
                 Container(
                   width: double.infinity,
@@ -120,7 +179,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                                   children: [
                                     Text(widget.fromCity, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
                                     const SizedBox(width: 4),
-                                    const Text("(كراجات شرقي_غربي)", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                    Text("($displayFromStation)", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -128,7 +187,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                                   children: [
                                     Text(widget.toCity, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
                                     const SizedBox(width: 4),
-                                    const Text("(نهر عيشة)", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                    Text("($displayToStation)", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                                   ],
                                 ),
                               ],
@@ -139,12 +198,11 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       const SizedBox(height: 16),
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF5F5F5)),
                       const SizedBox(height: 16),
-                      // صف التاريخ الثابت والوقت
                       Row(
                         children: [
                           Expanded(child: _buildCompactInfoField("تاريخ الرحلة", currentSelectedDate, Icons.calendar_month)),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildCompactInfoField("وقت الانطلاق", widget.tripTime, Icons.watch_later)),
+                          Expanded(child: _buildCompactInfoField("وقت الانطلاق", formattedTime, Icons.watch_later)),
                         ],
                       ),
                     ],
@@ -172,7 +230,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // تمثيل زجاج مقدمة الباص الجمالي العلوي
                         Container(
                           width: 60,
                           height: 4,
@@ -183,13 +240,21 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         ),
                         const SizedBox(height: 12),
 
-                        // كابينة الشوفير الأمامية بمقعد مريح ومستقل
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(Icons.tune_rounded, color: Colors.grey.shade400, size: 22),
+                              Row(
+                                children: [
+                                  Icon(Icons.tag, color: Colors.grey.shade400, size: 16),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    "باص رقم: $activeBusNumber",
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
                               Column(
                                 children: [
                                   Icon(Icons.airline_seat_recline_normal_rounded, color: Colors.grey.shade800, size: 28),
@@ -204,46 +269,43 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         Divider(thickness: 1, color: Colors.grey.shade100, height: 10),
                         const SizedBox(height: 12),
 
-                        // شبكة المقاعد الانسيابية المستقلة
-                        GridView.builder(
+                        // عرض مؤشر تحميل أثناء جلب الكراسي المحجوزة حقيقة منعاً للوميض المفاجئ
+                        isSeatsLoading
+                            ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: CircularProgressIndicator(color: primaryGreen),
+                        )
+                            : GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: 35,
+                          itemCount: gridItemCount,
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 5,
-                            mainAxisSpacing: 14, // أبعاد ممتازة لمنع تداخل النصوص مع الأيقونات
+                            mainAxisSpacing: 14,
                             crossAxisSpacing: 8,
                             childAspectRatio: 0.85,
                           ),
                           itemBuilder: (context, index) {
                             if (index % 5 == 2) {
-                              return const SizedBox(); // ممر الركاب مفرغ
+                              return const SizedBox();
                             }
 
                             int currentSeat = seatCounter(index);
+
+                            if (currentSeat > activeTotalSeats) {
+                              return const SizedBox();
+                            }
+
                             return _buildIndependentSeatItem(currentSeat);
                           },
-                        ),
-                        const SizedBox(height: 14),
-
-                        // الصف الأخير الخلفي المكون من 5 كراسي
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: List.generate(5, (index) {
-                            int backSeatNum = 29 + index;
-                            return Expanded(
-                              child: _buildIndependentSeatItem(backSeatNum),
-                            );
-                          }),
                         ),
                       ],
                     ),
                   ),
                 ),
 
-                // حالة وإحصائيات المقاعد
                 const SizedBox(height: 24),
-                _buildSeatStats(),
+                if (!isSeatsLoading) _buildSeatStats(activeTotalSeats),
 
                 const SizedBox(height: 24),
                 Center(
@@ -267,7 +329,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                           MaterialPageRoute(
                             builder: (context) => PassengerDetailsScreen(
                               selectedSeats: selectedSeats,
-                              pricePerSeat: 400, // السعر الافتراضي لكل مقعد والمستخدم في الحسابات
+                              pricePerSeat: 400,
                               fromCity: widget.fromCity,
                               toCity: widget.toCity,
                               travelDate: currentSelectedDate,
@@ -338,12 +400,10 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
-  // بناء الكرسي المستقل بالأيقونة الاحترافية والمحسنة جمالياً
   Widget _buildIndependentSeatItem(int seatNum) {
     bool isReserved = reservedSeats.contains(seatNum);
     bool isSelected = selectedSeats.contains(seatNum);
 
-    // دقة واحترافية الألوان طبقاً لطلبك مع تحسين درجات التباين
     Color iconColor = isReserved
         ? Colors.grey.shade300
         : (isSelected ? primaryGreen : lightAvailableGreen);
@@ -372,7 +432,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.event_seat_rounded, // تم تغيير شكل الأيقونة لتصبح أكثر انسيابية وجمالية للـ UI
+              Icons.event_seat_rounded,
               color: iconColor,
               size: 26,
             ),
@@ -391,9 +451,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
-  Widget _buildSeatStats() {
-    int totalActualSeats = 33;
-    int availableCount = totalActualSeats - reservedSeats.length;
+  Widget _buildSeatStats(int totalActualSeats) {
+    int reservedCount = reservedSeats.where((s) => s <= totalActualSeats).length;
+    int availableCount = totalActualSeats - reservedCount;
 
     return Container(
       width: MediaQuery.of(context).size.width > 450 ? 360 : double.infinity,
@@ -402,7 +462,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _statBox("متاح", availableCount.toString(), lightAvailableGreen),
-          _statBox("محجوز", reservedSeats.length.toString(), Colors.grey.shade300),
+          _statBox("محجوز", reservedCount.toString(), Colors.grey.shade300),
           _statBox("محدد", selectedSeats.length.toString(), primaryGreen),
         ],
       ),
