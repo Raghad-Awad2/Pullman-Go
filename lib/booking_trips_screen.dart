@@ -69,7 +69,6 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
     }
   }
 
-  // دالة مخصصة لتحويل الوقت من نظام 24 ساعة إلى نظام 12 ساعة مع إضافة م / ص باللغة العربية
   String _formatTo12Hour(String time24) {
     try {
       List<String> parts = time24.split(':');
@@ -88,7 +87,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
 
       return "$strHour:$strMinute $period";
     } catch (e) {
-      return time24; // حماية التطبيق من الانهيار في حال الخطأ
+      return time24;
     }
   }
 
@@ -294,9 +293,18 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
 
             var busData = tripData['bus'] ?? {};
             int dynamicTotalSeats = busData['total_seats'] ?? 35;
-
-            // 💡 مطابقة حقل قاعدة البيانات بدقة تامة لإنهاء الـ Null
             String dynamicBusNumber = busData['bus_numbernnn']?.toString() ?? "غير محدد";
+
+            // 💡 معالجة السعر الحقيقي القادم من جدول الـ routes التابع للرحلة
+            int realPrice = 0;
+            if (routeData['base_price'] != null) {
+              var rawPrice = routeData['base_price'];
+              if (rawPrice is num) {
+                realPrice = rawPrice.toInt();
+              } else {
+                realPrice = double.tryParse(rawPrice.toString())?.toInt() ?? 0;
+              }
+            }
 
             Navigator.push(
               context,
@@ -312,6 +320,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                   companyName: widget.companyName,
                   totalSeats: dynamicTotalSeats,
                   busNumber: dynamicBusNumber,
+                  tripPrice: realPrice, // 👈 تمرير السعر الحقيقي المستخرج
                 ),
               ),
             );

@@ -10,7 +10,7 @@ class PassengerDetailsScreen extends StatefulWidget {
   final int? tripId;
   final int? userId;
   final String? travelDate;
-  final int pricePerSeat;
+  final int pricePerSeat; // 👈 يستقبل القيمة الحقيقية الآن بكل سلاسة
 
   const PassengerDetailsScreen({
     super.key,
@@ -39,7 +39,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
 
   bool _isScrolled = false;
 
-  String get safeBusNumber => widget.busNumber?.toString() ?? "1";
+  String get safeBusNumber => (widget.busNumber != null && widget.busNumber!.isNotEmpty) ? widget.busNumber! : "1";
   String get safeFromCity => widget.fromCity ?? "غير متوفر";
   String get safeToCity => widget.toCity ?? "غير متوفر";
 
@@ -329,7 +329,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                     Icon(Icons.local_activity_outlined, color: primaryGreen, size: 20),
                     const SizedBox(width: 10),
                     Expanded(child: Text("من $safeFromCity إلى $safeToCity", style: TextStyle(fontWeight: FontWeight.bold, color: navyColor))),
-                    Text("باص $safeBusNumber", style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                    Text("باص $safeBusNumber", style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

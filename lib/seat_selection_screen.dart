@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:dio/dio.dart'; // 👈 استيراد مكتبة الـ Dio للاتصال بالـ API
+import 'package:dio/dio.dart';
 import 'passenger_details_screen.dart';
 
 class SeatSelectionScreen extends StatefulWidget {
-  final int? tripId; // 👈 استقبال معرف الرحلة
+  final int? tripId;
   final String fromCity;
   final String toCity;
   final String selectedDate;
@@ -15,6 +15,7 @@ class SeatSelectionScreen extends StatefulWidget {
   final String? toStation;
   final int? totalSeats;
   final String? busNumber;
+  final int? tripPrice; // 👈 استقبال السعر الحقيقي هنا
 
   const SeatSelectionScreen({
     super.key,
@@ -29,6 +30,7 @@ class SeatSelectionScreen extends StatefulWidget {
     this.toStation,
     this.totalSeats,
     this.busNumber,
+    this.tripPrice, // 👈 الإضافة للمشيّد
   });
 
   @override
@@ -41,8 +43,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   final Color navyColor = const Color(0xFF1A237E);
 
   List<int> selectedSeats = [];
-  List<int> reservedSeats = []; // 👈 أصبحت ديناميكية وفارغة افتراضياً لتمثيل الداتابيز الحقيقية
-  bool isSeatsLoading = true;    // مؤشر تحميل خاص بالمقاعد
+  List<int> reservedSeats = [];
+  bool isSeatsLoading = true;
 
   late String currentSelectedDate;
 
@@ -50,14 +52,13 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   void initState() {
     super.initState();
     currentSelectedDate = widget.selectedDate;
-    fetchReservedSeats(); // 👈 استدعاء جلب المقاعد المحجوزة فوراً عند بناء الشاشة
+    fetchReservedSeats();
   }
 
-  // 👈 دالة الاتصال بالـ Laravel لطلب المقاعد المحجوزة فعلياً للرحلة والتاريخ المحددين
   Future<void> fetchReservedSeats() async {
     if (widget.tripId == null) {
       setState(() => isSeatsLoading = false);
-      return; // إذا كانت قادمة من شاشة العروض كبيانات وهمية لا تفعل شيئاً
+      return;
     }
 
     try {
@@ -71,7 +72,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
       if (response.data['status'] == true) {
         setState(() {
-          // تحويل البيانات القادمة من الباك أند إلى مصفوفة من الأرقام بشكل آمن
           reservedSeats = List<int>.from(response.data['reserved_seats']);
           isSeatsLoading = false;
         });
@@ -112,6 +112,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     int activeTotalSeats = widget.totalSeats ?? 35;
     String activeBusNumber = (widget.busNumber != null && widget.busNumber!.isNotEmpty) ? widget.busNumber! : "عرض خاص";
 
+    // 💡 إعطاء الأولوية للسعر القادم، و 400 كقيمة احتياطية في حال تعطل الاتصال فقط
+    int activeTripPrice = widget.tripPrice ?? 400;
+
     String displayFromStation = (widget.fromStation != null && widget.fromStation!.isNotEmpty)
         ? widget.fromStation!
         : "كراجات شرقي_غربي";
@@ -149,7 +152,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // الكارد العلوي المدمج للمحافظات والتاريخ والوقت
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -216,7 +218,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // هيكل الحافلة المطور بلمسات جمالية انسيابية
                 Center(
                   child: Container(
                     width: MediaQuery.of(context).size.width > 450 ? 360 : double.infinity,
@@ -269,7 +270,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         Divider(thickness: 1, color: Colors.grey.shade100, height: 10),
                         const SizedBox(height: 12),
 
-                        // عرض مؤشر تحميل أثناء جلب الكراسي المحجوزة حقيقة منعاً للوميض المفاجئ
                         isSeatsLoading
                             ? Padding(
                           padding: const EdgeInsets.symmetric(vertical: 40),
@@ -329,10 +329,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                           MaterialPageRoute(
                             builder: (context) => PassengerDetailsScreen(
                               selectedSeats: selectedSeats,
-                              pricePerSeat: 400,
+                              pricePerSeat: activeTripPrice, // 👈 تمرير السعر الديناميكي هنا بنجاح
                               fromCity: widget.fromCity,
                               toCity: widget.toCity,
                               travelDate: currentSelectedDate,
+                              busNumber: activeBusNumber,
+                              tripId: widget.tripId,
                             ),
                           ),
                         );
