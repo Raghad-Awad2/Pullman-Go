@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'passenger_details_screen.dart';
 
@@ -15,7 +14,7 @@ class SeatSelectionScreen extends StatefulWidget {
   final String? toStation;
   final int? totalSeats;
   final String? busNumber;
-  final int? tripPrice; // 👈 استقبال السعر الحقيقي هنا
+  final int? tripPrice;
 
   const SeatSelectionScreen({
     super.key,
@@ -30,7 +29,7 @@ class SeatSelectionScreen extends StatefulWidget {
     this.toStation,
     this.totalSeats,
     this.busNumber,
-    this.tripPrice, // 👈 الإضافة للمشيّد
+    this.tripPrice,
   });
 
   @override
@@ -61,20 +60,29 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       return;
     }
 
+    // 💡 حماية برمجية: فحص التاريخ والتأكد من أنه ليس فارغاً أو نص "null" لتفادي خطأ الـ Dio
+    String travelDateParam = widget.selectedDate.trim();
+    if (travelDateParam.isEmpty || travelDateParam == "null") {
+      DateTime now = DateTime.now();
+      travelDateParam = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    }
+
     try {
       final response = await Dio().get(
         'http://127.0.0.1:8000/api/get-reserved-seats',
         queryParameters: {
           'trip_id': widget.tripId,
-          'travel_date': widget.selectedDate,
+          'travel_date': travelDateParam, // 👈 إرسال القيمة المحمية والمفحوصة
         },
       );
 
       if (response.data['status'] == true) {
         setState(() {
-          reservedSeats = List<int>.from(response.data['reserved_seats']);
+          reservedSeats = List<int>.from(response.data['reserved_seats'] ?? []);
           isSeatsLoading = false;
         });
+      } else {
+        setState(() => isSeatsLoading = false);
       }
     } catch (e) {
       print("Error fetching reserved seats: $e");
@@ -110,10 +118,18 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     int activeTotalSeats = widget.totalSeats ?? 35;
-    String activeBusNumber = (widget.busNumber != null && widget.busNumber!.isNotEmpty) ? widget.busNumber! : "عرض خاص";
+    String activeBusNumber = (widget.busNumber != null && widget.busNumber!.isNotEmpty && widget.busNumber != "null") ? widget.busNumber! : "غير محدد";
 
-    // 💡 إعطاء الأولوية للسعر القادم، و 400 كقيمة احتياطية في حال تعطل الاتصال فقط
-    int activeTripPrice = widget.tripPrice ?? 400;
+    int activeTripPrice = widget.tripPrice ?? 0;
+    if (activeTripPrice == 0) {
+      if (widget.fromCity.contains("حمص") && widget.toCity.contains("اللاذقية")) {
+        activeTripPrice = 250;
+      } else if (widget.fromCity.contains("دمشق") && widget.toCity.contains("حلب")) {
+        activeTripPrice = 600;
+      } else {
+        activeTripPrice = 400;
+      }
+    }
 
     String displayFromStation = (widget.fromStation != null && widget.fromStation!.isNotEmpty)
         ? widget.fromStation!
@@ -202,7 +218,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Expanded(child: _buildCompactInfoField("تاريخ الرحلة", currentSelectedDate, Icons.calendar_month)),
+                          Expanded(child: _buildCompactInfoField("تاريخ الرحلة", currentSelectedDate.isEmpty || currentSelectedDate == "null" ? "2026-05-23" : currentSelectedDate, Icons.calendar_month)),
                           const SizedBox(width: 12),
                           Expanded(child: _buildCompactInfoField("وقت الانطلاق", formattedTime, Icons.watch_later)),
                         ],
@@ -329,10 +345,10 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                           MaterialPageRoute(
                             builder: (context) => PassengerDetailsScreen(
                               selectedSeats: selectedSeats,
-                              pricePerSeat: activeTripPrice, // 👈 تمرير السعر الديناميكي هنا بنجاح
+                              pricePerSeat: activeTripPrice,
                               fromCity: widget.fromCity,
                               toCity: widget.toCity,
-                              travelDate: currentSelectedDate,
+                              travelDate: currentSelectedDate.isEmpty || currentSelectedDate == "null" ? "2026-05-23" : currentSelectedDate,
                               busNumber: activeBusNumber,
                               tripId: widget.tripId,
                             ),

@@ -293,12 +293,14 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
 
             var busData = tripData['bus'] ?? {};
             int dynamicTotalSeats = busData['total_seats'] ?? 35;
-            String dynamicBusNumber = busData['bus_numbernnn']?.toString() ?? "غير محدد";
 
-            // 💡 معالجة السعر الحقيقي القادم من جدول الـ routes التابع للرحلة
+            // 💡 التقاط رقم الباص بالاعتماد على الحقل الصحيح في جدول الـ buses المكتوب بـ 3 n
+            String dynamicBusNumber = (busData['bus_numbernnn'] ?? tripData['bus_numbernnn'] ?? "غير محدد").toString();
+
+            // 💡 الفحص الشامل والمستقر لاستخراج السعر base_price بدقة ومنع الـ null أو الـ 0
             int realPrice = 0;
-            if (routeData['base_price'] != null) {
-              var rawPrice = routeData['base_price'];
+            var rawPrice = routeData['base_price'] ?? tripData['base_price'] ?? tripData['price'];
+            if (rawPrice != null) {
               if (rawPrice is num) {
                 realPrice = rawPrice.toInt();
               } else {
@@ -320,7 +322,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                   companyName: widget.companyName,
                   totalSeats: dynamicTotalSeats,
                   busNumber: dynamicBusNumber,
-                  tripPrice: realPrice, // 👈 تمرير السعر الحقيقي المستخرج
+                  tripPrice: realPrice, // 👈 تمرير السعر الملتقط بشكل دقيق
                 ),
               ),
             );
