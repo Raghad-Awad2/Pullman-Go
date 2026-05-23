@@ -80,6 +80,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
 
     List<Map<String, dynamic>> passengerList = [];
     for (int i = 0; i < widget.selectedSeats.length; i++) {
+      // تم تعديل المفاتيح هنا لتطابق مصفوفة الـ Request في الـ Laravel تماماً بدون تضارب
       passengerList.add({
         "seat_number": widget.selectedSeats[i],
         "passenger_name": nameControllers[i].text.trim(),
@@ -95,6 +96,9 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
         builder: (context) => PaymentGatewayScreen(
           totalAmount: totalPrice,
           passengerList: passengerList,
+          tripId: widget.tripId ?? 0,         // 👈 ممرر حديثاً لشاشة الدفع والـ API
+          userId: widget.userId ?? 0,         // 👈 ممرر حديثاً لشاشة الدفع والـ API
+          travelDate: widget.travelDate ?? "", // 👈 ممرر حديثاً لشاشة الدفع والـ API
         ),
       ),
     );

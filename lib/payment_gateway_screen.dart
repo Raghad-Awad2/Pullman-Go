@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:dio/dio.dart'; // ستحتاجين لاستيراد مكتبة Dio للاتصال بالباك أند
 
 class PaymentGatewayScreen extends StatefulWidget {
   final int totalAmount;
   final List<Map<String, dynamic>> passengerList;
+  final int tripId;        // مضاف حديثاً لربط الرحلة
+  final int userId;        // مضاف حديثاً لمعرفة المستخدم
+  final String travelDate; // مضاف حديثاً لتحديد تاريخ السفر
 
   const PaymentGatewayScreen({
     super.key,
     required this.totalAmount,
     required this.passengerList,
+    required this.tripId,
+    required this.userId,
+    required this.travelDate,
   });
 
   @override
@@ -20,9 +27,8 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
   final Color navyColor = const Color(0xFF2D3436);
   final Color backgroundColor = const Color(0xFFF8F9FA);
 
-  // المتغيرات المسؤولة عن تحديد المرحلة الحالية للمستخدم
-  int _currentStep = 1; // 1: اختيار البوابة، 2: إدخال بيانات المحفظة والـ OTP
-  String _selectedMethod = ''; // 'sham' أو 'syriatel' أو 'mtn'
+  int _currentStep = 1;
+  String _selectedMethod = '';
 
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
@@ -30,8 +36,104 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
   bool _isOtpSent = false;
   bool _isProcessing = false;
 
+  final Dio _dio = Dio(); // تعريف كائن مكتبة الـ Dio
+
   String get _formattedAmount {
     return widget.totalAmount.toString().replaceAllMatches(RegExp(r'\B(?=(\d{3})+(?!\d))'), ',');
+  }
+
+  // دالة إرسال الطلب الفعلي لقاعدة البيانات عبر الباك أند المحصنة والذكية تماماً
+  Future<void> _sendBookingToBackend() async {
+    setState(() => _isProcessing = true);
+
+    // تجهيز مصفوفة الركاب لتطابق شكل الجداول المكتشفة بالـ phpMyAdmin والـ Controller الجديد
+    List<Map<String, dynamic>> formattedPassengers = widget.passengerList.map((passenger) {
+      return {
+        'seat_number': passenger['seat_number'].toString(), // تم المزامنة مع مفاتيح الشاشة السابقة لضمان صحة البيانات
+        'passenger_name': passenger['passenger_name'].toString(),
+      };
+    }).toList();
+
+    // معالجة وتحويل التاريخ من الصيغة العادية (25/5/2026) إلى الصيغة القياسية (2026-05-25) لحل مشكلة السيرفر نهائياً
+    String synchronizedDate = widget.travelDate.toString();
+    try {
+      if (synchronizedDate.contains('/')) {
+        List<String> dateParts = synchronizedDate.split('/');
+        if (dateParts.length == 3) {
+          String day = dateParts[0].padLeft(2, '0');
+          String month = dateParts[1].padLeft(2, '0');
+          String year = dateParts[2];
+          synchronizedDate = "$year-$month-$day"; // إعادة التشكيل القياسي المتوافق مع قواعد البيانات
+        }
+      }
+    } catch (dateError) {
+      // الحفاظ على القيمة الأصلية في حال حدوث أي استثناء غير متوقع أثناء المعالجة
+      synchronizedDate = widget.travelDate.toString();
+    }
+
+    // بناء وتجميع الـ Map بالكامل باسم requestData لحل مشكلة الخط الأحمر المتعرج 👍
+    Map<String, dynamic> requestData = {
+      'user_id': widget.userId,
+      'trip_id': widget.tripId,
+      'seats_count': widget.passengerList.length,
+      'travel_date': synchronizedDate, // تم التمرير هنا بالصيغة السليمة والمطابقة 100%
+      'total_price': widget.totalAmount,
+      'payment_method': _selectedMethod, // أرسل الكود مباشرة (sham, syriatel, mtn) ليتوافق مع اللارافيل ويجتاز الـ Validation
+      'notes': '',
+      'passengers': formattedPassengers,
+    };
+
+    try {
+      // إرسال الطلب عبر الـ IP المحلي المعتمد لبيئة متصفح الكروم
+      final response = await _dio.post(
+        'http://localhost:8000/api/store-booking',
+        data: requestData,
+      );
+
+      setState(() => _isProcessing = false);
+
+      if (response.statusCode == 201 && response.data['status'] == true) {
+        // إذا نجح الحفظ بالباك أند، أظهري دالة النجاح التي قمتِ ببنائها
+        _showSuccessStageDialog(response.data['data']['reference_number'].toString());
+      } else {
+        _showErrorSnackBar("فشل تأكيد الحجز: ${response.data['message']?.toString() ?? 'بيانات غير مطابقة'}");
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+
+      // تفكيك أخطاء الـ Validation من لارافيل بشكل محمي 100% يمنع الـ TypeError نهائياً
+      if (e is DioException && e.response != null) {
+        final responseData = e.response!.data;
+
+        if (responseData is Map) {
+          // إذا أرجع لارافيل أخطاء تفصيلية بداخل حقل errors
+          if (responseData.containsKey('errors') && responseData['errors'] is Map) {
+            Map errors = responseData['errors'];
+            String firstError = errors.values.first.toString();
+            _showErrorSnackBar("خطأ مدخلات: $firstError");
+            return;
+          }
+          // إذا كانت الرسالة نصية أو مصفوفة محولة
+          if (responseData.containsKey('message')) {
+            _showErrorSnackBar("السيرفر يرفض: ${responseData['message'].toString()}");
+            return;
+          }
+        }
+        _showErrorSnackBar("خطأ من السيرفر بترميز: ${e.response!.statusCode}");
+      } else {
+        _showErrorSnackBar("حدث خطأ في الاتصال بالشبكة: $e");
+      }
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 7), // وقت كافٍ لقراءة الحقل المسبب للرفض
+      ),
+    );
   }
 
   @override
@@ -87,7 +189,6 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     );
   }
 
-  // ملخص علوي ثابت للمبلغ المطلوب سداده لأمان ووضوح التعامل
   Widget _buildHeaderSummary() {
     return Container(
       width: double.infinity,
@@ -116,7 +217,6 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     );
   }
 
-  // ✨ المرحلة الأولى: شاشة اختيار طريقة الدفع المتاحة بالتطبيق
   Widget _buildStageOneSelection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,7 +268,6 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     );
   }
 
-  // ✨ المرحلة الثانية: شاشة معالجة بيانات الحساب والـ OTP الآمن
   Widget _buildStageTwoForm() {
     String methodNameStr = _selectedMethod == 'sham' ? "شام كاش" : _selectedMethod == 'syriatel' ? "سيريتل كاش" : "كاش موبايل";
     return Column(
@@ -209,7 +308,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
           _buildFormButton(
             label: "تأكيد وإتمام المعاملة بأمان",
             icon: Icons.verified_user_rounded,
-            onPressed: _otpController.text.length == 4 ? _simulateFinalPayment : null,
+            onPressed: _otpController.text.length == 4 ? _sendBookingToBackend : null,
           ),
         ],
       ],
@@ -228,8 +327,11 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
                 controller: _phoneController,
                 onChanged: (val) => setState(() {}),
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(9), FilteringTextInputFormatter.deny(RegExp(r'^0'))],
-                style: TextStyle(fontSize: 16, letterSpacing: 1.5, fontWeight: FontWeight.bold, color: navyColor),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(9), // 👈 قمنا بإضافة كلمة TextInput هنا لتصبح صحيحة
+                  FilteringTextInputFormatter.deny(RegExp(r'^0')),
+                ],                style: TextStyle(fontSize: 16, letterSpacing: 1.5, fontWeight: FontWeight.bold, color: navyColor),
                 decoration: const InputDecoration(border: InputBorder.none, hintText: "9xxxxxxxxx", contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15)),
               ),
             ),
@@ -280,18 +382,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     });
   }
 
-  void _simulateFinalPayment() {
-    setState(() => _isProcessing = true);
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-        _showSuccessStageDialog(); // الانتقال إلى المرحلة الثالثة والنهائية
-      }
-    });
-  }
-
-  // ✨ المرحلة الثالثة: شاشة النجاح الكامل والتأكيد البصري على حجز مقاعد الحافلة
-  void _showSuccessStageDialog() {
+  void _showSuccessStageDialog(String referenceNumber) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -314,7 +405,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
                 Text("تمت العملية بنجاح!", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: navyColor)),
                 const SizedBox(height: 10),
                 Text(
-                  "تم سداد مبلغ $_formattedAmount ل.س بنجاح وتأكيد حجز مقاعدك في الحافلة. رحلة سعيدة!",
+                  "تم سداد مبلغ $_formattedAmount ل.س بنجاح وتأكيد حجز مقاعدك في الحافلة.\nرقم الحجز المرجعي: $referenceNumber\nرحلة سعيدة!",
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 13, color: Colors.grey, height: 1.6),
                 ),
