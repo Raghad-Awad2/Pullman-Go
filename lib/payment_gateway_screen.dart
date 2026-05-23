@@ -23,9 +23,10 @@ class PaymentGatewayScreen extends StatefulWidget {
 }
 
 class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
-  final Color primaryGreen = const Color(0xFF2ECC71);
-  final Color navyColor = const Color(0xFF2D3436);
-  final Color backgroundColor = const Color(0xFFF8F9FA);
+  // 🎨 الألوان الموحدة والفخمة للتطبيق كـ static const حمايةً لبيئة الويب
+  static const Color primaryNavy = Color(0xFF050E1A);       // الكحلي الغامق الفخم
+  static const Color accentIceBlue = Color(0xFF162D4A);     // لغة الأزرار والتفاصيل النشطة
+  static const Color backgroundColor = Color(0xFFF4F6F9);   // الخلفية المريحة الموحدة
 
   int _currentStep = 1;
   String _selectedMethod = '';
@@ -151,10 +152,10 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
         backgroundColor: backgroundColor,
         appBar: AppBar(
           backgroundColor: Colors.white,
-          elevation: 0,
+          elevation: 0.5,
           centerTitle: true,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new, color: navyColor, size: 20),
+            icon: const Icon(Icons.arrow_back_ios_new, color: primaryNavy, size: 18),
             onPressed: () {
               if (_currentStep == 2) {
                 setState(() {
@@ -169,11 +170,11 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
           ),
           title: Text(
             _currentStep == 1 ? "بوابة الدفع الإلكتروني" : "تأكيد الحساب المالي",
-            style: TextStyle(color: navyColor, fontWeight: FontWeight.w900, fontSize: 16),
+            style: const TextStyle(color: primaryNavy, fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
         body: _isProcessing
-            ? Center(child: CircularProgressIndicator(color: primaryGreen))
+            ? const Center(child: CircularProgressIndicator(color: accentIceBlue))
             : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
@@ -196,7 +197,8 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 10)],
+        border: Border.all(color: const Color(0xFFEAEDF2)),
       ),
       child: Column(
         children: [
@@ -207,9 +209,9 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(_formattedAmount, style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, color: navyColor)),
+              Text(_formattedAmount, style: const TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: primaryNavy)),
               const SizedBox(width: 5),
-              Text("ل.س", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: primaryGreen)),
+              const Text("ل.س", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accentIceBlue)),
             ],
           ),
         ],
@@ -221,7 +223,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("اختر طريقة الدفع المفضلة لديك:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: navyColor)),
+        const Text("اختر طريقة الدفع المفضلة لديك:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
         const SizedBox(height: 16),
         _buildPaymentMethodCard('sham', "شام كاش الإلكترونية", Icons.account_balance_wallet_rounded),
         _buildPaymentMethodCard('syriatel', "سيريتل كاش (Syriatel Cash)", Icons.phone_android_rounded),
@@ -233,11 +235,12 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
           child: ElevatedButton(
             onPressed: _selectedMethod.isNotEmpty ? () => setState(() => _currentStep = 2) : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryGreen,
+              backgroundColor: accentIceBlue,
               disabledBackgroundColor: Colors.grey.shade300,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: _selectedMethod.isNotEmpty ? 2 : 0,
             ),
-            child: const Text("متابعة الدفع بالطريقة المختارة", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
+            child: const Text("متابعة الدفع بالطريقة المختارة", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
           ),
         ),
       ],
@@ -251,17 +254,17 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isSelected ? primaryGreen : Colors.transparent, width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 8)],
+        border: Border.all(color: isSelected ? accentIceBlue : Colors.transparent, width: 2),
+        boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.01), blurRadius: 8)],
       ),
       child: ListTile(
         onTap: () => setState(() => _selectedMethod = id),
-        leading: Icon(icon, color: isSelected ? primaryGreen : navyColor.withOpacity(0.6), size: 24),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: navyColor)),
+        leading: Icon(icon, color: isSelected ? accentIceBlue : primaryNavy.withOpacity(0.6), size: 24),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
         trailing: Radio<String>(
           value: id,
           groupValue: _selectedMethod,
-          activeColor: primaryGreen,
+          activeColor: accentIceBlue,
           onChanged: (val) => setState(() => _selectedMethod = val!),
         ),
       ),
@@ -275,14 +278,14 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
       children: [
         Row(
           children: [
-            Icon(Icons.lock_outline_rounded, color: primaryGreen, size: 18),
+            const Icon(Icons.lock_outline_rounded, color: accentIceBlue, size: 18),
             const SizedBox(width: 6),
-            Text("حساب الدفع عبر: $methodNameStr", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: navyColor)),
+            Text("حساب الدفع عبر: $methodNameStr", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
           ],
         ),
         const SizedBox(height: 20),
         if (!_isOtpSent) ...[
-          Text("أدخل رقم الهاتف المرتبط بمحفظتك:", style: TextStyle(fontSize: 13, color: navyColor.withOpacity(0.8))),
+          Text("أدخل رقم الهاتف المرتبط بمحفظتك:", style: TextStyle(fontSize: 13, color: primaryNavy.withOpacity(0.8))),
           const SizedBox(height: 10),
           _buildPhoneField(),
           const SizedBox(height: 35),
@@ -293,7 +296,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
           ),
         ],
         if (_isOtpSent) ...[
-          Text("أدخل رمز التحقق (OTP) السري المستلم برسالة:", style: TextStyle(fontSize: 13, color: navyColor.withOpacity(0.8))),
+          Text("أدخل رمز التحقق (OTP) السري المستلم برسالة:", style: TextStyle(fontSize: 13, color: primaryNavy.withOpacity(0.8))),
           const SizedBox(height: 10),
           _buildOtpField(),
           const SizedBox(height: 10),
@@ -301,7 +304,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () => setState(() => _isOtpSent = false),
-              child: Text("تغيير رقم الهاتف", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+              child: const Text("تغيير رقم الهاتف", style: TextStyle(color: accentIceBlue, fontWeight: FontWeight.bold, fontSize: 12)),
             ),
           ),
           const SizedBox(height: 25),
@@ -317,7 +320,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
 
   Widget _buildPhoneField() {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.01), blurRadius: 5)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.01), blurRadius: 5)], border: Border.all(color: const Color(0xFFEAEDF2))),
       child: Row(
         children: [
           Expanded(
@@ -329,14 +332,15 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(9), // 👈 قمنا بإضافة كلمة TextInput هنا لتصبح صحيحة
+                  LengthLimitingTextInputFormatter(9),
                   FilteringTextInputFormatter.deny(RegExp(r'^0')),
-                ],                style: TextStyle(fontSize: 16, letterSpacing: 1.5, fontWeight: FontWeight.bold, color: navyColor),
+                ],
+                style: const TextStyle(fontSize: 16, letterSpacing: 1.5, fontWeight: FontWeight.bold, color: primaryNavy),
                 decoration: const InputDecoration(border: InputBorder.none, hintText: "9xxxxxxxxx", contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 15)),
               ),
             ),
           ),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text("+963", style: TextStyle(color: navyColor, fontWeight: FontWeight.bold))),
+          const Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text("+963", style: TextStyle(color: primaryNavy, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -344,14 +348,14 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
 
   Widget _buildOtpField() {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFEAEDF2))),
       child: TextField(
         controller: _otpController,
         onChanged: (val) => setState(() {}),
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-        style: TextStyle(fontSize: 22, letterSpacing: 12.0, fontWeight: FontWeight.w900, color: navyColor),
+        style: const TextStyle(fontSize: 22, letterSpacing: 12.0, fontWeight: FontWeight.bold, color: primaryNavy),
         decoration: InputDecoration(border: InputBorder.none, hintText: "••••", hintStyle: TextStyle(color: Colors.grey.shade300), contentPadding: const EdgeInsets.symmetric(vertical: 12)),
       ),
     );
@@ -365,7 +369,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
         onPressed: onPressed,
         icon: Icon(icon, color: Colors.white, size: 18),
         label: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        style: ElevatedButton.styleFrom(backgroundColor: primaryGreen, disabledBackgroundColor: Colors.grey.shade300, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        style: ElevatedButton.styleFrom(backgroundColor: accentIceBlue, disabledBackgroundColor: Colors.grey.shade300, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: onPressed != null ? 2 : 0),
       ),
     );
   }
@@ -392,17 +396,18 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
           textDirection: TextDirection.rtl,
           child: AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: Colors.white,
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(color: primaryGreen.withOpacity(0.1), shape: BoxShape.circle),
-                  child: Icon(Icons.check_circle_rounded, color: primaryGreen, size: 50),
+                  decoration: BoxDecoration(color: accentIceBlue.withOpacity(0.08), shape: BoxShape.circle),
+                  child: const Icon(Icons.check_circle_rounded, color: accentIceBlue, size: 50),
                 ),
                 const SizedBox(height: 20),
-                Text("تمت العملية بنجاح!", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: navyColor)),
+                const Text("تمت العملية بنجاح!", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryNavy)),
                 const SizedBox(height: 10),
                 Text(
                   "تم سداد مبلغ $_formattedAmount ل.س بنجاح وتأكيد حجز مقاعدك في الحافلة.\nرقم الحجز المرجعي: $referenceNumber\nرحلة سعيدة!",
@@ -415,7 +420,7 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
                   height: 46,
                   child: ElevatedButton(
                     onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                    style: ElevatedButton.styleFrom(backgroundColor: navyColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                    style: ElevatedButton.styleFrom(backgroundColor: primaryNavy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), elevation: 2),
                     child: const Text("الانتقال إلى الرئيسية", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ),

@@ -29,9 +29,10 @@ class PassengerDetailsScreen extends StatefulWidget {
 }
 
 class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
-  final Color primaryGreen = const Color(0xFF2ECC71);
-  final Color navyColor = const Color(0xFF2D3436);
-  final Color backgroundColor = const Color(0xFFF8F9FA);
+  // 🎨 تحويل الألوان إلى static const لمنع مشكلة undefined (withOpacity) في الويب تماماً
+  static const Color primaryNavy = Color(0xFF050E1A);
+  static const Color accentIceBlue = Color(0xFF162D4A);
+  static const Color backgroundColor = Color(0xFFF4F6F9);
 
   final TextEditingController phoneController = TextEditingController();
   final List<TextEditingController> nameControllers = [];
@@ -80,7 +81,6 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
 
     List<Map<String, dynamic>> passengerList = [];
     for (int i = 0; i < widget.selectedSeats.length; i++) {
-      // تم تعديل المفاتيح هنا لتطابق مصفوفة الـ Request في الـ Laravel تماماً بدون تضارب
       passengerList.add({
         "seat_number": widget.selectedSeats[i],
         "passenger_name": nameControllers[i].text.trim(),
@@ -96,9 +96,9 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
         builder: (context) => PaymentGatewayScreen(
           totalAmount: totalPrice,
           passengerList: passengerList,
-          tripId: widget.tripId ?? 0,         // 👈 ممرر حديثاً لشاشة الدفع والـ API
-          userId: widget.userId ?? 0,         // 👈 ممرر حديثاً لشاشة الدفع والـ API
-          travelDate: widget.travelDate ?? "", // 👈 ممرر حديثاً لشاشة الدفع والـ API
+          tripId: widget.tripId ?? 0,
+          userId: widget.userId ?? 0,
+          travelDate: widget.travelDate ?? "",
         ),
       ),
     );
@@ -118,16 +118,16 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                 expandedHeight: 110.0,
                 floating: false,
                 pinned: true,
-                elevation: _isScrolled ? 1 : 0,
-                backgroundColor: _isScrolled ? const Color(0xFFEFEFEF) : Colors.white,
+                elevation: _isScrolled ? 0.5 : 0,
+                backgroundColor: Colors.white,
                 leading: IconButton(
-                  icon: Icon(Icons.arrow_back_ios_new, color: _isScrolled ? const Color(0xFF2D3436) : Colors.black, size: 20),
+                  icon: const Icon(Icons.arrow_back_ios_new, color: primaryNavy, size: 18),
                   onPressed: () => Navigator.pop(context),
                 ),
                 centerTitle: true,
                 title: AnimatedDefaultTextStyle(
                   duration: const Duration(milliseconds: 200),
-                  style: TextStyle(color: _isScrolled ? const Color(0xFF2D3436) : Colors.black, fontWeight: FontWeight.w900, fontSize: _isScrolled ? 16 : 18),
+                  style: const TextStyle(color: primaryNavy, fontWeight: FontWeight.bold, fontSize: 16),
                   child: const Text("بيانات المسافرين"),
                 ),
                 flexibleSpace: FlexibleSpaceBar(
@@ -139,9 +139,9 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.directions_bus_outlined, color: primaryGreen, size: 20),
+                            const Icon(Icons.directions_bus_outlined, color: accentIceBlue, size: 20),
                             const SizedBox(width: 8),
-                            Text("من $safeFromCity إلى $safeToCity", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: navyColor)),
+                            Text("من $safeFromCity إلى $safeToCity", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
                           ],
                         ),
                         Text("باص رقم: $safeBusNumber  •  ${widget.selectedSeats.length} مقاعد", style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
@@ -163,9 +163,9 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                 const SizedBox(height: 35),
                 Row(
                   children: [
-                    const Expanded(child: Divider(endIndent: 10, thickness: 1)),
-                    Text("تفاصيل الركاب والمقاعد", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: navyColor.withOpacity(0.7))),
-                    const Expanded(child: Divider(indent: 10, thickness: 1)),
+                    const Expanded(child: Divider(endIndent: 10, thickness: 1, color: Color(0xFFEAEDF2))),
+                    Text("تفاصيل الركاب والمقاعد", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy.withOpacity(0.7))),
+                    const Expanded(child: Divider(indent: 10, thickness: 1, color: Color(0xFFEAEDF2))),
                   ],
                 ),
                 const SizedBox(height: 25),
@@ -188,16 +188,16 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
   Widget _buildSectionTitle(IconData icon, String title) {
     return Row(
       children: [
-        Icon(icon, color: primaryGreen, size: 18),
+        Icon(icon, color: accentIceBlue, size: 18),
         const SizedBox(width: 8),
-        Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: navyColor)),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
       ],
     );
   }
 
   Widget _buildNewPhoneField() {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))], border: Border.all(color: const Color(0xFFEAEDF2))),
       child: Row(
         children: [
           Expanded(
@@ -209,7 +209,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.left,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(9), FilteringTextInputFormatter.deny(RegExp(r'^0'))],
-                style: TextStyle(fontSize: 15, letterSpacing: 2.0, fontWeight: FontWeight.w600, color: navyColor),
+                style: const TextStyle(fontSize: 15, letterSpacing: 2.0, fontWeight: FontWeight.w600, color: primaryNavy),
                 decoration: const InputDecoration(hintText: "9xxxxxxxxx", hintStyle: TextStyle(color: Colors.grey, fontSize: 14, letterSpacing: 1.0), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 16)),
               ),
             ),
@@ -220,9 +220,9 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("+963", style: TextStyle(color: navyColor, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5)),
+                const Text("+963", style: TextStyle(color: primaryNavy, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5)),
                 const SizedBox(width: 6),
-                Icon(Icons.phone_android_rounded, color: primaryGreen.withOpacity(0.7), size: 20),
+                Icon(Icons.phone_android_rounded, color: accentIceBlue.withOpacity(0.7), size: 20),
               ],
             ),
           ),
@@ -234,11 +234,11 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
   Widget _buildPassengerCard(int index, int seatNumber) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))], border: Border.all(color: const Color(0xFFEAEDF2))),
       child: IntrinsicHeight(
         child: Row(
           children: [
-            Container(width: 5, decoration: BoxDecoration(color: primaryGreen, borderRadius: const BorderRadius.only(topRight: Radius.circular(16), bottomRight: Radius.circular(16)))),
+            Container(width: 5, decoration: const BoxDecoration(color: accentIceBlue, borderRadius: BorderRadius.only(topRight: Radius.circular(16), bottomRight: Radius.circular(16)))),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(18),
@@ -248,7 +248,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("الراكب ${index + 1}", style: TextStyle(color: navyColor, fontWeight: FontWeight.w900, fontSize: 15)),
+                        Text("الراكب ${index + 1}", style: const TextStyle(color: primaryNavy, fontWeight: FontWeight.bold, fontSize: 15)),
                         _buildSeatBadge(seatNumber),
                       ],
                     ),
@@ -256,11 +256,11 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                     TextField(
                       controller: nameControllers[index],
                       onChanged: (val) => setState(() {}),
-                      style: TextStyle(fontSize: 14, color: navyColor),
+                      style: const TextStyle(fontSize: 14, color: primaryNavy),
                       decoration: InputDecoration(
                         hintText: "الاسم الثلاثي المكتوب في الهوية",
                         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
-                        prefixIcon: Icon(Icons.person_outline, color: primaryGreen.withOpacity(0.7), size: 18),
+                        prefixIcon: Icon(Icons.person_outline, color: accentIceBlue.withOpacity(0.7), size: 18),
                         filled: true,
                         fillColor: const Color(0xFFF8F9FA),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -280,12 +280,12 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
   Widget _buildSeatBadge(int seatNumber) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: primaryGreen.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: accentIceBlue.withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
       child: Row(
         children: [
-          Icon(Icons.airline_seat_recline_normal_outlined, size: 14, color: primaryGreen),
+          const Icon(Icons.airline_seat_recline_normal_outlined, size: 14, color: accentIceBlue),
           const SizedBox(width: 4),
-          Text("مقعد ${seatNumber.toString().padLeft(2, '0')}", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold, fontSize: 12)),
+          Text("مقعد ${seatNumber.toString().padLeft(2, '0')}", style: const TextStyle(color: accentIceBlue, fontWeight: FontWeight.bold, fontSize: 12)),
         ],
       ),
     );
@@ -299,8 +299,8 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
       child: ElevatedButton.icon(
         onPressed: _isAllDataEntered() ? () => _showBookingSummary(context) : null,
         icon: Icon(Icons.check_circle_outline, color: _isAllDataEntered() ? Colors.white : Colors.grey[500], size: 18),
-        label: Text("تأكيد وحفظ البيانات", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: _isAllDataEntered() ? Colors.white : Colors.grey[500])),
-        style: ElevatedButton.styleFrom(backgroundColor: primaryGreen, disabledBackgroundColor: Colors.grey[300], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: _isAllDataEntered() ? 3 : 0),
+        label: Text("تأكيد وحفظ البيانات", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _isAllDataEntered() ? Colors.white : Colors.grey[500])),
+        style: ElevatedButton.styleFrom(backgroundColor: accentIceBlue, disabledBackgroundColor: Colors.grey[300], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: _isAllDataEntered() ? 2 : 0),
       ),
     );
   }
@@ -323,16 +323,16 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
             children: [
               Container(width: 35, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 20),
-              Text("ملخص وتأكيد الحجز", style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: navyColor)),
+              const Text("ملخص وتأكيد الحجز", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: primaryNavy)),
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(color: const Color(0xFFF8F9FA), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: const Color(0xFFF8F9FA), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFEAEDF2))),
                 child: Row(
                   children: [
-                    Icon(Icons.local_activity_outlined, color: primaryGreen, size: 20),
+                    const Icon(Icons.local_activity_outlined, color: accentIceBlue, size: 20),
                     const SizedBox(width: 10),
-                    Expanded(child: Text("من $safeFromCity إلى $safeToCity", style: TextStyle(fontWeight: FontWeight.bold, color: navyColor))),
+                    Expanded(child: Text("من $safeFromCity إلى $safeToCity", style: const TextStyle(fontWeight: FontWeight.bold, color: primaryNavy))),
                     Text("باص $safeBusNumber", style: TextStyle(color: Colors.grey[600], fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -340,7 +340,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
               const SizedBox(height: 20),
               _row("سعر التذكرة الواحدة", "${widget.pricePerSeat} ل.س", false),
               _row("عدد المقاعد المحجوزة", "$seatCount", false),
-              const Divider(height: 25, thickness: 1),
+              const Divider(height: 25, thickness: 1, color: Color(0xFFEAEDF2)),
               _row("إجمالي تكلفة الحجز", "$totalPrice ل.س", true),
               const SizedBox(height: 25),
               Row(
@@ -348,7 +348,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => _navigateToPaymentScreen(modalContext),
-                      style: ElevatedButton.styleFrom(backgroundColor: primaryGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(14), elevation: 0),
+                      style: ElevatedButton.styleFrom(backgroundColor: accentIceBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(14), elevation: 0),
                       child: const Text("متابعة للدفع", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ),
@@ -357,7 +357,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(modalContext),
                       style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.grey[300]!), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), padding: const EdgeInsets.all(14)),
-                      child: Text("مراجعة", style: TextStyle(color: navyColor, fontWeight: FontWeight.bold)),
+                      child: const Text("مراجعة", style: TextStyle(color: primaryNavy, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -375,8 +375,8 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: isTotal ? primaryGreen : Colors.grey, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
-          Text(val, style: TextStyle(fontWeight: FontWeight.w900, color: isTotal ? primaryGreen : navyColor, fontSize: isTotal ? 18 : 14)),
+          Text(label, style: TextStyle(color: isTotal ? accentIceBlue : Colors.grey, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
+          Text(val, style: TextStyle(fontWeight: FontWeight.bold, color: isTotal ? accentIceBlue : primaryNavy, fontSize: isTotal ? 18 : 14)),
         ],
       ),
     );

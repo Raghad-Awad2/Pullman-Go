@@ -30,8 +30,11 @@ class BookingTripsScreen extends StatefulWidget {
 
 class _BookingTripsScreenState extends State<BookingTripsScreen> {
   int activeTab = 0;
-  final Color navyColor = const Color(0xFF2D3436);
-  final Color primaryGreen = const Color(0xFF2ECC71);
+
+  // 🎨 الألوان الفخمة المعتمدة والموحدة للتطبيق
+  final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق الفخم
+  final Color accentIceBlue = const Color(0xFF162D4A);     // لغة الأزرار والتفاصيل النشطة (زر البحث)
+  final Color lightGreyBackground = const Color(0xFFF4F6F9); // الخلفية المريحة الموحدة
 
   List<dynamic> serverTrips = [];
   bool isLoading = true;
@@ -96,16 +99,16 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF1F2F6),
+        backgroundColor: lightGreyBackground, // تطبيق الخلفية الموحدة
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+            icon: Icon(Icons.arrow_back_ios_new, color: primaryNavy, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text("اختيار موعد الرحلة",
-              style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
+          title: Text("اختيار موعد الرحلة",
+              style: TextStyle(color: primaryNavy, fontSize: 18, fontWeight: FontWeight.bold)),
           centerTitle: true,
         ),
         body: Column(
@@ -119,7 +122,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15)],
+                    boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.06), blurRadius: 15)],
                     border: Border.all(color: Colors.white, width: 3),
                   ),
                   child: ClipOval(
@@ -130,7 +133,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(widget.companyName,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: primaryNavy)),
               ],
             ),
             const SizedBox(height: 20),
@@ -139,9 +142,9 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
             _buildFilterTabs(),
             Expanded(
               child: isLoading
-                  ? Center(child: CircularProgressIndicator(color: primaryGreen))
+                  ? Center(child: CircularProgressIndicator(color: accentIceBlue)) // تحديث لون مؤشر التحميل
                   : serverTrips.isEmpty
-                  ? const Center(child: Text("لا توجد رحلات متاحة لهذا اليوم"))
+                  ? Center(child: Text("لا توجد رحلات متاحة لهذا اليوم", style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold)))
                   : ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 children: _getFilteredTrips(),
@@ -160,14 +163,14 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 10))],
+        boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))],
       ),
       child: Row(
         children: [
           Expanded(child: _headerInfo("من", widget.fromCity, Icons.location_on_outlined)),
-          Icon(Icons.arrow_forward, color: primaryGreen.withOpacity(0.5), size: 20),
+          Icon(Icons.arrow_forward, color: accentIceBlue.withOpacity(0.4), size: 20), // تحديث لون السهم المنساب
           Expanded(child: _headerInfo("إلى", widget.toCity, Icons.location_on)),
-          Container(width: 1, height: 40, color: Colors.grey[100], margin: const EdgeInsets.symmetric(horizontal: 10)),
+          Container(width: 1, height: 40, color: Colors.grey[200], margin: const EdgeInsets.symmetric(horizontal: 10)),
           Expanded(child: _headerInfo("التاريخ", widget.selectedDate, Icons.calendar_today_outlined)),
         ],
       ),
@@ -177,10 +180,10 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
   Widget _headerInfo(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, size: 16, color: primaryGreen),
+        Icon(icon, size: 16, color: accentIceBlue), // تحديث ألوان رموز الهيدر
         const SizedBox(height: 4),
         Text(value,
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14),
+          style: TextStyle(color: primaryNavy, fontWeight: FontWeight.w900, fontSize: 14),
           textAlign: TextAlign.center,
         ),
       ],
@@ -194,6 +197,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
+        boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
@@ -213,7 +217,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? primaryGreen : Colors.transparent,
+          color: isSelected ? accentIceBlue : Colors.transparent, // تحديث الخلفية النشطة للتاب
           borderRadius: BorderRadius.circular(25),
         ),
         child: Center(
@@ -280,7 +284,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
         color: isPast ? Colors.grey[100] : Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          if (!isPast) BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)
+          if (!isPast) BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 10)
         ],
       ),
       child: ClipRRect(
@@ -334,12 +338,12 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isPast ? Colors.grey[300] : primaryGreen.withOpacity(0.1),
+                    color: isPast ? Colors.grey[300] : accentIceBlue.withOpacity(0.1), // تحديث لون خلفية أيقونة الوقت النشط
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                       isPast ? Icons.timer_off_outlined : Icons.access_time_filled,
-                      color: isPast ? Colors.grey[500] : primaryGreen,
+                      color: isPast ? Colors.grey[500] : accentIceBlue, // تحديث لون الأيقونة النشطة
                       size: 24
                   ),
                 ),
@@ -353,7 +357,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 16,
-                            color: isPast ? Colors.grey[400] : const Color(0xFF2D3436),
+                            color: isPast ? Colors.grey[400] : primaryNavy, // ربط نصوص الرحلة باللون الكحلي الرئيسي الفخم
                             decoration: isPast ? TextDecoration.lineThrough : null
                         ),
                       ),

@@ -37,9 +37,10 @@ class SeatSelectionScreen extends StatefulWidget {
 }
 
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
-  final Color primaryGreen = const Color(0xFF2ECC71);
-  final Color lightAvailableGreen = const Color(0xFFA3E4D7);
-  final Color navyColor = const Color(0xFF1A237E);
+  // 🎨 تحديث الألوان الفخمة الموحدة للتطبيق دون المساس بأي منطق برمي
+  final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق الفخم للـ AppBar والنصوص الأساسية
+  final Color accentIceBlue = const Color(0xFF162D4A);     // لون الأزرار والمقاعد المحددة النشطة
+  final Color iceAvailableSeat = const Color(0xFFD4E6F1);  // لون جليدي ناعم ومريح للمقاعد المتاحة
 
   List<int> selectedSeats = [];
   List<int> reservedSeats = [];
@@ -147,17 +148,17 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: const Color(0xFFF4F6F9), // خلفية ناعمة فخمة ومتناسقة
         appBar: AppBar(
           backgroundColor: Colors.white,
-          elevation: 0.8,
-          title: const Text(
+          elevation: 0.5,
+          title: Text(
             "تحديد المقاعد",
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
+            style: TextStyle(color: primaryNavy, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 0.5),
           ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 18),
+            icon: Icon(Icons.arrow_back_ios_new, color: primaryNavy, size: 18),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -174,8 +175,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 4))],
-                    border: Border.all(color: Colors.grey.shade100),
+                    boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 12, offset: const Offset(0, 4))],
+                    border: Border.all(color: const Color(0xFFEAEDF2)),
                   ),
                   child: Column(
                     children: [
@@ -183,7 +184,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         children: [
                           Column(
                             children: [
-                              Icon(Icons.circle, size: 9, color: primaryGreen),
+                              Icon(Icons.circle, size: 9, color: accentIceBlue),
                               Container(width: 1.5, height: 26, color: Colors.grey.shade300),
                               const Icon(Icons.location_on, size: 14, color: Colors.redAccent),
                             ],
@@ -195,7 +196,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Text(widget.fromCity, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                                    Text(widget.fromCity, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
                                     const SizedBox(width: 4),
                                     Text("($displayFromStation)", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                                   ],
@@ -203,7 +204,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                                 const SizedBox(height: 16),
                                 Row(
                                   children: [
-                                    Text(widget.toCity, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
+                                    Text(widget.toCity, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
                                     const SizedBox(width: 4),
                                     Text("($displayToStation)", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                                   ],
@@ -241,8 +242,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(35),
-                      border: Border.all(color: Colors.grey.shade200, width: 2),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+                      border: Border.all(color: accentIceBlue.withOpacity(0.15), width: 2),
+                      boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5))],
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -274,9 +275,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                               ),
                               Column(
                                 children: [
-                                  Icon(Icons.airline_seat_recline_normal_rounded, color: Colors.grey.shade800, size: 28),
+                                  Icon(Icons.airline_seat_recline_normal_rounded, color: primaryNavy, size: 28),
                                   const SizedBox(height: 2),
-                                  Text("السائق", style: TextStyle(fontSize: 10, color: Colors.grey.shade800, fontWeight: FontWeight.bold)),
+                                  Text("السائق", style: TextStyle(fontSize: 10, color: primaryNavy, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             ],
@@ -289,7 +290,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         isSeatsLoading
                             ? Padding(
                           padding: const EdgeInsets.symmetric(vertical: 40),
-                          child: CircularProgressIndicator(color: primaryGreen),
+                          child: CircularProgressIndicator(color: accentIceBlue),
                         )
                             : GridView.builder(
                           shrinkWrap: true,
@@ -332,7 +333,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: selectedSeats.isEmpty ? [] : [
                         BoxShadow(
-                          color: primaryGreen.withOpacity(0.25),
+                          color: accentIceBlue.withOpacity(0.25),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         )
@@ -356,7 +357,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryGreen,
+                        backgroundColor: accentIceBlue,
                         disabledBackgroundColor: Colors.grey.shade300,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         elevation: 0,
@@ -411,7 +412,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           ),
           child: Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: primaryNavy),
           ),
         ),
       ],
@@ -424,11 +425,11 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
     Color iconColor = isReserved
         ? Colors.grey.shade300
-        : (isSelected ? primaryGreen : lightAvailableGreen);
+        : (isSelected ? accentIceBlue : iceAvailableSeat);
 
     Color textColor = isReserved
         ? Colors.grey.shade400
-        : (isSelected ? primaryGreen : Colors.black87);
+        : (isSelected ? accentIceBlue : primaryNavy);
 
     return GestureDetector(
       onTap: isReserved ? null : () {
@@ -479,9 +480,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _statBox("متاح", availableCount.toString(), lightAvailableGreen),
-          _statBox("محجوز", reservedCount.toString(), Colors.grey.shade300),
-          _statBox("محدد", selectedSeats.length.toString(), primaryGreen),
+          _statBox("متاح", availableCount.toString(), iceAvailableSeat),
+          _statBox("محجوز", reservedCount.toString(), Colors.grey.shade300), // 👈 تم إصلاح تمرير المتغير هنا ليظهر العدد بشكل صحيح
+          _statBox("محدد", selectedSeats.length.toString(), accentIceBlue),
         ],
       ),
     );
@@ -494,7 +495,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         const SizedBox(width: 6),
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500)),
         const SizedBox(width: 4),
-        Text(count, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.black87)),
+        Text(count, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: primaryNavy)),
       ],
     );
   }

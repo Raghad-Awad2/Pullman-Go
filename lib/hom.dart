@@ -33,9 +33,12 @@ class PullmanMainScreen extends StatefulWidget {
 
 class _PullmanMainScreenState extends State<PullmanMainScreen> {
   int _pageIndex = 3;
-  final Color primaryGreen = const Color(0xFF2ECC71);
-  final Color darkGreen = const Color(0xFF27AE60);
-  final Color darkGrey = Colors.grey[700]!;
+
+  // 🎨 فلسفة تدرج الكحلي المنساب (Monochromatic Navy Gradient Core) - تم تغميقها درجة واحدة بدقة
+  final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق جداً (بداية التدرج من الأعلى)
+  final Color accentIceBlue = const Color(0xFF162D4A);     // 👈 آخر درجة في التدرج (لون الأزرار والرموز النشطة متطابق تماماً)
+  final Color lightGreyBackground = const Color(0xFFF4F6F9); // خلفية التطبيق رمادي ناعم
+  final Color darkGrey = Colors.grey[600]!;
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -84,7 +87,7 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: lightGreyBackground,
         body: NestedScrollView(
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
             return <Widget>[
@@ -102,7 +105,7 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
                       InkWell(
                         onTap: () => setState(() => _pageIndex = 0),
                         child: CircleAvatar(
-                            backgroundColor: Colors.white.withOpacity(0.3),
+                            backgroundColor: Colors.white.withOpacity(0.12),
                             child: const Icon(Icons.person, color: Colors.white)
                         ),
                       ),
@@ -140,17 +143,25 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: true,
                   titlePadding: const EdgeInsets.only(bottom: 25),
-                  title: Text(_getAppBarTitle(), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+                  title: Text(_getAppBarTitle(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                   background: Container(
                     decoration: BoxDecoration(
-                      color: darkGreen,
+                      // تطبيق التدرج الكحلي الذكي المعدل من الأغمق للأفتح عند الحافة السفلية
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          primaryNavy,    // اغمق شي فوق
+                          accentIceBlue,  // الدرجة المعدلة تحت (وهي نفس لون زر البحث تماماً)
+                        ],
+                      ),
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(30.0),
                         bottomRight: Radius.circular(30.0),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: primaryNavy.withOpacity(0.15),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -181,7 +192,7 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
   Widget _buildHomeScreenContent() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
-      child: Column(children: [const BusSearchForm(), const SizedBox(height: 30)]),
+      child: Column(children: [BusSearchForm(primaryColor: primaryNavy, accentColor: accentIceBlue), const SizedBox(height: 30)]),
     );
   }
 
@@ -193,13 +204,13 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
           index: _pageIndex == 3 ? 0 : (_pageIndex == 2 ? 1 : (_pageIndex == 1 ? 2 : 3)),
           height: 70.0,
           items: [
-            Icon(Icons.home, size: 30, color: _pageIndex == 3 ? primaryGreen : darkGrey),
-            Icon(Icons.local_offer, size: 30, color: _pageIndex == 2 ? primaryGreen : darkGrey),
-            Icon(Icons.directions_bus, size: 30, color: _pageIndex == 1 ? primaryGreen : darkGrey),
-            Icon(Icons.person, size: 30, color: _pageIndex == 0 ? primaryGreen : darkGrey),
+            Icon(Icons.home, size: 30, color: _pageIndex == 3 ? accentIceBlue : darkGrey),
+            Icon(Icons.local_offer, size: 30, color: _pageIndex == 2 ? accentIceBlue : darkGrey),
+            Icon(Icons.directions_bus, size: 30, color: _pageIndex == 1 ? accentIceBlue : darkGrey),
+            Icon(Icons.person, size: 30, color: _pageIndex == 0 ? accentIceBlue : darkGrey),
           ],
-          color: const Color(0xFFE0E0E0),
-          buttonBackgroundColor: const Color(0xFFE0E0E0),
+          color: const Color(0xFFEAEDF2),
+          buttonBackgroundColor: primaryNavy, // الدائرة تندمج باللون الكحلي العلوي المعدل
           backgroundColor: Colors.transparent,
           onTap: (index) {
             setState(() {
@@ -228,13 +239,16 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
 
   Widget _buildLabel(String text, int index) => Container(
     width: 80, alignment: Alignment.center,
-    child: Text(text, style: TextStyle(color: _pageIndex == index ? primaryGreen : darkGrey, fontSize: 12, fontWeight: FontWeight.bold)),
+    child: Text(text, style: TextStyle(color: _pageIndex == index ? accentIceBlue : darkGrey, fontSize: 12, fontWeight: FontWeight.bold)),
   );
 }
 
 class BusSearchForm extends StatefulWidget {
   final bool isMini;
-  const BusSearchForm({super.key, this.isMini = false});
+  final Color? primaryColor;
+  final Color? accentColor;
+
+  const BusSearchForm({super.key, this.isMini = false, this.primaryColor, this.accentColor});
   @override
   State<BusSearchForm> createState() => _BusSearchFormState();
 }
@@ -252,15 +266,19 @@ class _BusSearchFormState extends State<BusSearchForm> {
   String? _fromError, _toError, _dateError;
   bool _isLoading = false;
 
+  late Color localPrimary;
+  late Color localAccent;
+
   @override
   void initState() {
     super.initState();
+    localPrimary = widget.primaryColor ?? const Color(0xFF050E1A);
+    localAccent = widget.accentColor ?? const Color(0xFF162D4A);
     _fetchCities();
   }
 
   Future<void> _fetchCities() async {
     try {
-      // تم استخدام الـ IP الموجود في ملف الـ .env الخاص بك
       final response = await Dio().get('http://localhost:8000/api/cities');
       if (response.statusCode == 200) {
         List data = response.data['data'];
@@ -275,7 +293,6 @@ class _BusSearchFormState extends State<BusSearchForm> {
     }
   }
 
-  // --- دالة مساعدة لتحويل التاريخ لاسم اليوم بالعربي ---
   String _getDayName(DateTime date) {
     List<String> days = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
     return days[date.weekday % 7];
@@ -293,8 +310,6 @@ class _BusSearchFormState extends State<BusSearchForm> {
 
       if (mounted) {
         String formattedDate = _selectedDate != null ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}" : "لم يحدد";
-
-        // حساب رقم اليوم لإرساله للباك أند (الأحد=0، الاثنين=1...) مطابقاً للصور التي أرسلتِها
         int dayIndex = _selectedDate != null ? (_selectedDate!.weekday % 7) : -1;
 
         Navigator.push(context, MaterialPageRoute(builder: (context) => CompanySelectionScreen(
@@ -303,7 +318,7 @@ class _BusSearchFormState extends State<BusSearchForm> {
           toCity: _toController.text,
           toCityId: _selectedToId!,
           selectedDate: formattedDate,
-          dayIndex: dayIndex, // تمرير اليوم الجديد
+          dayIndex: dayIndex,
         )));
       }
       setState(() => _isLoading = false);
@@ -313,15 +328,15 @@ class _BusSearchFormState extends State<BusSearchForm> {
   @override
   Widget build(BuildContext context) {
     if (_isFetching) {
-      return const Center(child: Padding(
-        padding: EdgeInsets.all(20.0),
-        child: CircularProgressIndicator(color: Color(0xFF2ECC71)),
+      return Center(child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: CircularProgressIndicator(color: localPrimary),
       ));
     }
 
     return Container(
       padding: widget.isMini ? EdgeInsets.zero : const EdgeInsets.all(20),
-      decoration: widget.isMini ? null : BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+      decoration: widget.isMini ? null : BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: localPrimary.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 8))]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -376,7 +391,7 @@ class _BusSearchFormState extends State<BusSearchForm> {
                   },
                   itemBuilder: (ctx) => filtered.map((c) => PopupMenuItem(value: c, child: Text(c.name, textDirection: TextDirection.rtl))).toList(),
                 ),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2ECC71), width: 2)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: localPrimary, width: 1.5)),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey[300]!)),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               ),
@@ -400,27 +415,26 @@ class _BusSearchFormState extends State<BusSearchForm> {
           },
           child: Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(border: Border.all(color: _dateError != null ? Colors.red : (_selectedDate != null ? const Color(0xFF2ECC71) : Colors.grey[300]!)), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(border: Border.all(color: _dateError != null ? Colors.red : (_selectedDate != null ? localPrimary : Colors.grey[300]!)), borderRadius: BorderRadius.circular(10)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(_selectedDate == null ? "اختر التاريخ" : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"),
-                Icon(Icons.calendar_month, color: _selectedDate != null ? const Color(0xFF2ECC71) : Colors.grey),
+                Icon(Icons.calendar_month, color: _selectedDate != null ? localPrimary : Colors.grey),
               ],
             ),
           ),
         ),
-        // --- التعديل: إظهار اليوم المختار بشكل أنيق ---
         if (_selectedDate != null)
           Padding(
             padding: const EdgeInsets.only(top: 8, right: 4),
             child: Row(
               children: [
-                const Icon(Icons.event_available, size: 16, color: Color(0xFF27AE60)),
+                Icon(Icons.event_available, size: 16, color: localAccent),
                 const SizedBox(width: 5),
                 Text(
                   "يصادف يوم: ${_getDayName(_selectedDate!)}",
-                  style: const TextStyle(color: Color(0xFF27AE60), fontWeight: FontWeight.bold, fontSize: 13),
+                  style: TextStyle(color: localAccent, fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ],
             ),
@@ -435,7 +449,8 @@ class _BusSearchFormState extends State<BusSearchForm> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: _isLoading ? () {} : _validateAndSearch,
-        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2ECC71), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), padding: const EdgeInsets.symmetric(vertical: 14)),
+        // تلوين الزر ليتطابق بالكامل مع آخر درجة بالتدرج العلوي (accentIceBlue)
+        style: ElevatedButton.styleFrom(backgroundColor: localAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), padding: const EdgeInsets.symmetric(vertical: 14)),
         child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text("بحث", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
       ),
     );

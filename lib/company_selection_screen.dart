@@ -78,7 +78,11 @@ class CompanySelectionScreen extends StatefulWidget {
 
 class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
   bool showAll = true;
-  final Color primaryGreen = const Color(0xFF2ECC71);
+
+  // 🎨 الألوان المعتمدة الفخمة والمتناسقة مع الواجهة الرئيسية
+  final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق الفخم (الأعلى)
+  final Color accentIceBlue = const Color(0xFF162D4A);     // كحلي الأزرار والـ Tabs النشطة (نفس لغة زر البحث)
+  final Color lightGreyBackground = const Color(0xFFF4F6F9); // خلفية التطبيق الرمادية الناعمة الموحدة
 
   List<TravelRoute> _allRoutes = [];
   bool _isLoading = true;
@@ -131,19 +135,19 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: lightGreyBackground, // تطبيق الخلفية الناعمة المعتمدة
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0.5,
           centerTitle: true,
-          title: const Text("اختيار الشركة", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
+          title: Text("اختيار الشركة", style: TextStyle(color: primaryNavy, fontWeight: FontWeight.bold, fontSize: 18)),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+            icon: Icon(Icons.arrow_back_ios_new, color: primaryNavy, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
         ),
         body: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Color(0xFF2ECC71)))
+            ? Center(child: CircularProgressIndicator(color: primaryNavy)) // مؤشر التحميل باللون الكحلي الفخم
             : Column(
           children: [
             _buildPromoCard(),
@@ -151,7 +155,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
             const SizedBox(height: 20),
             Expanded(
               child: displayedList.isEmpty
-                  ? Center(child: Text(showAll ? "لا يوجد رحلات متاحة لهذا المسار في هذا اليوم" : "قائمة المفضلة فارغة"))
+                  ? Center(child: Text(showAll ? "لا يوجد رحلات متاحة لهذا المسار في هذا اليوم" : "قائمة المفضلة فارغة", style: TextStyle(color: darkGrey)))
                   : ListView.builder(
                 itemCount: displayedList.length,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -170,9 +174,10 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [primaryGreen.withOpacity(0.1), Colors.white], begin: Alignment.topRight, end: Alignment.bottomLeft),
+        // تدرج كحلي انسيابي ناعم يتوافق مع الهوية الجديدة
+        gradient: LinearGradient(colors: [accentIceBlue.withOpacity(0.08), Colors.white], begin: Alignment.topRight, end: Alignment.bottomLeft),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: primaryGreen.withOpacity(0.2)),
+        border: Border.all(color: accentIceBlue.withOpacity(0.15)),
       ),
       child: Column(
         children: [
@@ -184,7 +189,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
-          Text("تاريخ الرحلة: ${widget.selectedDate}", style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold)),
+          Text("تاريخ الرحلة: ${widget.selectedDate}", style: TextStyle(color: accentIceBlue, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -194,7 +199,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(15)),
+      decoration: BoxDecoration(color: const Color(0xFFEAEDF2), borderRadius: BorderRadius.circular(15)), // متناسق مع لون خلفية القائمة السفلية
       child: Row(
         children: [
           Expanded(
@@ -202,7 +207,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
               onTap: () => setState(() => showAll = true),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(color: showAll ? primaryGreen : Colors.transparent, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: showAll ? accentIceBlue : Colors.transparent, borderRadius: BorderRadius.circular(12)), // متناسق مع زر البحث
                 child: Center(child: Text("جميع الشركات", style: TextStyle(color: showAll ? Colors.white : Colors.grey[600], fontWeight: FontWeight.bold))),
               ),
             ),
@@ -212,7 +217,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
               onTap: () => setState(() => showAll = false),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(color: !showAll ? primaryGreen : Colors.transparent, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: !showAll ? accentIceBlue : Colors.transparent, borderRadius: BorderRadius.circular(12)),
                 child: Center(child: Text("المفضلة", style: TextStyle(color: !showAll ? Colors.white : Colors.grey[600], fontWeight: FontWeight.bold))),
               ),
             ),
@@ -226,7 +231,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
     bool isFav = favoriteRoutes.any((e) => e.id == route.id);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 4))]),
       child: InkWell(
         onTap: () {
           Map<String, dynamic> companyToPass = Map.from(route.fullCompanyData);
@@ -255,16 +260,16 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
                   height: 50,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.directions_bus_filled, color: Colors.green, size: 30),
+                      Icon(Icons.directions_bus_filled, color: accentIceBlue, size: 30),
                 )
-                    : const Icon(Icons.directions_bus_filled, color: Colors.green, size: 30),
+                    : Icon(Icons.directions_bus_filled, color: accentIceBlue, size: 30), // استبدال اللون الأخضر بـ accentIceBlue لتوحيد الهوية
               ),
               const SizedBox(width: 15),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(route.companyName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(route.companyName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: primaryNavy)),
                     Text("السعر: ${route.price} ل.س", style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                     Text("وقت الرحلة: ${route.startTime}", style: TextStyle(color: Colors.blueGrey, fontSize: 12)),
                   ],
@@ -277,4 +282,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
       ),
     );
   }
+
+  // تعريف لون الرموز غير النشطة بشكل جانبي لتفادي الأخطاء البنائية
+  Color get darkGrey => Colors.grey[600]!;
 }

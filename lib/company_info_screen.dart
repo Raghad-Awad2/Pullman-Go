@@ -27,7 +27,11 @@ class CompanyInfoScreen extends StatefulWidget {
 
 class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
   late bool isFavorite;
-  final Color primaryGreen = const Color(0xFF2ECC71);
+
+  // 🎨 الهوية اللونية الفخمة المعتمدة والموحدة للتطبيق
+  final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق الفخم
+  final Color accentIceBlue = const Color(0xFF162D4A);     // لون الأزرار والبادجات الموحد (زر البحث)
+  final Color lightGreyBackground = const Color(0xFFF4F6F9); // الخلفية المريحة للتطبيق
 
   @override
   void initState() {
@@ -76,12 +80,12 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: lightGreyBackground, // تطبيق الخلفية الموحدة
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+            icon: Icon(Icons.arrow_back_ios_new, color: primaryNavy, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           actions: [
@@ -95,7 +99,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
               child: IconButton(
                 icon: Icon(
                   isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? primaryGreen : Colors.black54,
+                  color: isFavorite ? accentIceBlue : Colors.black54, // تحديث لون المفضلة النشطة
                   size: 22,
                 ),
                 onPressed: () {
@@ -117,7 +121,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                     height: 220,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [primaryGreen.withOpacity(0.2), Colors.white],
+                        colors: [accentIceBlue.withOpacity(0.12), Colors.white], // التدرج العلوي الكحلي الانسيابي
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -131,7 +135,8 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20)],                      ),
+                        boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.08), blurRadius: 20)],
+                      ),
                       child: CircleAvatar(
                         radius: 65,
                         backgroundColor: Colors.white,
@@ -147,7 +152,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
 
               Text(
                 widget.company['name'] ?? "اسم الشركة غير متوفر",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF2D3436)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: primaryNavy), // ربط الاسم باللون الرئيسي للفخامة
               ),
 
               const SizedBox(height: 8),
@@ -159,7 +164,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                   style: const TextStyle(color: Colors.blueGrey, fontSize: 15, fontStyle: FontStyle.italic),
                 ),
               ),
-              const SizedBox(height: 25), // تم الحفاظ على المسافة لتناسق العناصر بعد إزالة النجوم
+              const SizedBox(height: 25),
               if (featuresList.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -209,23 +214,20 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryGreen,
+                    backgroundColor: accentIceBlue, // تلوين زر الحجز ليتطابق مع زر البحث تماماً
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    elevation: 8,
-                    shadowColor: primaryGreen.withOpacity(0.4),
+                    elevation: 6,
+                    shadowColor: accentIceBlue.withOpacity(0.3),
                   ),
                   onPressed: () {
                     try {
-                      // تعديل ذكي لمعالجة التاريخ مهما كان تنسيقه (يحل مشكلة عدم النقل)
                       DateTime date;
                       List<String> parts = widget.selectedDate.split(RegExp(r'[/-]'));
                       if (parts.length == 3 && parts[0].length < 4) {
-                        // إذا كان التنسيق يوم/شهر/سنة (مثل صورتك 27/4/2026)
                         date = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
                       } else {
-                        // التنسيق الافتراضي سنة-شهر-يوم
                         date = DateTime.parse(widget.selectedDate);
                       }
 
@@ -256,7 +258,6 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                       );
                     } catch (e) {
                       print("Error during navigation: $e");
-                      // تنبيه في حال وجود خطأ في البيانات
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("حدث خطأ في معالجة التاريخ: $e")),
                       );
@@ -276,7 +277,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
     );
   }
 
-  // --- ويدجت الميزات بنفس تصميمك ---
+  // --- ويدجت الميزات بالتناسق الكحلي الجديد ---
   Widget _buildBadge(String label) {
     Map<String, String> translation = {
       'comfortable_seats': 'مقاعد مريحة',
@@ -297,31 +298,31 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primaryGreen.withOpacity(0.3)),
-        boxShadow: [BoxShadow(color: primaryGreen.withOpacity(0.05), blurRadius: 5)],
+        border: Border.all(color: accentIceBlue.withOpacity(0.2)),
+        boxShadow: [BoxShadow(color: accentIceBlue.withOpacity(0.03), blurRadius: 5)],
       ),
       child: Text(
         translatedText,
-        style: TextStyle(color: primaryGreen, fontSize: 13, fontWeight: FontWeight.bold),
+        style: TextStyle(color: accentIceBlue, fontSize: 13, fontWeight: FontWeight.bold),
       ),
     );
   }
 
-  // --- ويدجت المعلومات بنفس تصميمك ---
+  // --- ويدجت المعلومات بالتناسق الكحلي الجديد ---
   Widget _buildModernTile({required IconData icon, required String title, required String value, bool isLink = false}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: primaryGreen.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: primaryGreen, size: 22),
+            decoration: BoxDecoration(color: accentIceBlue.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: accentIceBlue, size: 22),
           ),
           const SizedBox(width: 15),
           Expanded(

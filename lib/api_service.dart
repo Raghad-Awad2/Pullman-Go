@@ -8,7 +8,7 @@ class ApiService {
 // ملاحظة: إذا بتجرب على محاكي أندرويد (Emulator) استخدم 10.0.2.2 بدل localhost
 // إذا بتجرب على جهاز حقيقي، حط IP جهازك الكمبيوتر
 //عنوان ال  APIs
-static const String baseUrl = "http://10.198.23.108:8000/api";
+static const String baseUrl = "http://localhost:8000/api";
 
 final Dio _dio = Dio(
 BaseOptions(
