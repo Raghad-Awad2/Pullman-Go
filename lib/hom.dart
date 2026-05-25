@@ -2,7 +2,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'company_selection_screen.dart';
 import 'my_trips_screen.dart';
 import 'offers_screen.dart';
@@ -33,6 +33,24 @@ class PullmanMainScreen extends StatefulWidget {
 
 class _PullmanMainScreenState extends State<PullmanMainScreen> {
   int _pageIndex = 3;
+
+  String userName = "جاري التحميل..."; // المتغير المخصص لحفظ الاسم وعرضه في الـ AppBar
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName(); // تشغيل دالة القراءة فوراً عند فتح الشاشة
+  }
+
+  // الدالة التي تذهب لذاكرة الهاتف وتجلب الاسم الحقيقي
+  Future<void> _loadUserName() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userName = prefs.getString('user_name') ?? "المسافر";
+    });
+  }
+
+
 
   // 🎨 فلسفة تدرج الكحلي المنساب (Monochromatic Navy Gradient Core) - تم تغميقها درجة واحدة بدقة
   final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق جداً (بداية التدرج من الأعلى)
@@ -110,12 +128,12 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Column(
+                      Column( // 👈 تم حذف const من هنا لكي يعمل المتغير ديناميكياً
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("مرحباً بعودتك", style: TextStyle(color: Colors.white70, fontSize: 10)),
-                          Text("أحمد محمد", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                          const Text("مرحباً بعودتك", style: TextStyle(color: Colors.white70, fontSize: 10)), // أضفنا const هنا للنص الثابت
+                          Text(userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)), // 👈 هنا سيعرض اسم المسافر الحقيقي!
                         ],
                       ),
                     ],
@@ -279,7 +297,7 @@ class _BusSearchFormState extends State<BusSearchForm> {
 
   Future<void> _fetchCities() async {
     try {
-      final response = await Dio().get('http://localhost:8000/api/cities');
+      final response = await Dio().get('http://10.180.125.108:8000/api/cities');
       if (response.statusCode == 200) {
         List data = response.data['data'];
         setState(() {

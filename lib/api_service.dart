@@ -8,95 +8,95 @@ class ApiService {
 // ملاحظة: إذا بتجرب على محاكي أندرويد (Emulator) استخدم 10.0.2.2 بدل localhost
 // إذا بتجرب على جهاز حقيقي، حط IP جهازك الكمبيوتر
 //عنوان ال  APIs
-static const String baseUrl = "http://localhost:8000/api";
+  static const String baseUrl = "http://10.180.125.108:8000/api";
 
-final Dio _dio = Dio(
-BaseOptions(
-baseUrl: baseUrl,
-headers: {
-'Accept': 'application/json',
-'Content-Type': 'application/json',
-},
-),
-);
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: baseUrl,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    ),
+  );
 //
 //
 //
 // 1. دالة التسجيل
 
 //هون ببعث بيانات التسجيل للرابط/register
-Future<Response> registerUser({
-required String name,
-required String email,
-required String phone,
-required String password,
-}) async {
-try {
-return await _dio.post(
-"/register",
-data: {
-"name": name,
-"email": email,
-"phone": phone,
-"password": password,
-},
-);
+  Future<Response> registerUser({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    try {
+      return await _dio.post(
+        "/register",
+        data: {
+          "name": name,
+          "email": email,
+          "phone": phone,
+          "password": password,
+        },
+      );
 // مشان اذا النت انقطع او ايميل مكرر نعرضلو رسالة من السيرفر
-} on DioException catch (e) {
-return e.response!; // رجع الرد حتى لو فيه خطأ (عشان نعرض رسالة السيرفر)
-}
-}
+    } on DioException catch (e) {
+      return e.response!; // رجع الرد حتى لو فيه خطأ (عشان نعرض رسالة السيرفر)
+    }
+  }
 //
 //
 //
 // 2. دالة التحقق من الرمز
 
 //بتبعت "باكيت" فيه الإيميل والرمز لعنوان /verify-otp
-Future<Response> verifyOtp({
+  Future<Response> verifyOtp({
 //هون بترجع الايميل والرمز للسيرفر على ملف الكونترولر بدالة التحقق من الرمز على هاد الكود
 // 2. البحث عن المستخدم اللي عنده هاد الإيميل وهاد الرمز تحديداً
 // $user = User::where('email', $request->email)
 //    ->where('otp_code', $request->otp_code)
 //    ->first();
-required String email,
-required String code,
-}) async {
-try {
-return await _dio.post(
-"/verify-otp",
-data: {"email": email, "otp_code": code},
-);
-} on DioException catch (e) {
-return e.response!;
-}
-}
+    required String email,
+    required String code,
+  }) async {
+    try {
+      return await _dio.post(
+        "/verify-otp",
+        data: {"email": email, "otp_code": code},
+      );
+    } on DioException catch (e) {
+      return e.response!;
+    }
+  }
 
 //  دالة ارسال بيانات تسجيل الدخول كمتغيرات للرابط "/login",
 //
 // 3. دالة تسجيل الدخول (Login)
-Future<Response> loginUser({
-required String loginField, // يمكن أن يكون إيميل أو رقم هاتف
-required String password,
-}) async {
-try {
-return await _dio.post(
-"/login", //هاد رابط تسجيل الدخول بالسيرفر
-data: {
-"login_field":
-loginField, // سنسميه login_field في السيرفر ليعرف أنه قد يكون هذا أو ذاك
-"password": password,
-},
-);
-} on DioException catch (e) {
+  Future<Response> loginUser({
+    required String loginField, // يمكن أن يكون إيميل أو رقم هاتف
+    required String password,
+  }) async {
+    try {
+      return await _dio.post(
+        "/login", //هاد رابط تسجيل الدخول بالسيرفر
+        data: {
+          "login_field":
+          loginField, // سنسميه login_field في السيرفر ليعرف أنه قد يكون هذا أو ذاك
+          "password": password,
+        },
+      );
+    } on DioException catch (e) {
 // نرجع الـ response حتى لو كان هناك خطأ (مثل 401: كلمة سر خاطئة)
-return e.response ??
-Response(
-requestOptions: RequestOptions(path: ''),
-statusCode: 500,
-statusMessage: "خطأ في الاتصال بالسيرفر",
-);
-}
-}
+      return e.response ??
+          Response(
+            requestOptions: RequestOptions(path: ''),
+            statusCode: 500,
+            statusMessage: "خطأ في الاتصال بالسيرفر",
+          );
+    }
+  }
 
 //
 //
@@ -104,60 +104,85 @@ statusMessage: "خطأ في الاتصال بالسيرفر",
 //4. دالة ارسال حقل الايميل (نسيت كلمة المرور)
 
 // دالة طلب إرسال رمز إعادة تعيين كلمة المرو
-Future<Response> requestPasswordReset({required String loginField}) async {
-try {
-return await _dio.post(
-"/forgot-password", // الرابط اللي رح نعمله باللارافيل لاحقاً
-data: {
-"login_field": loginField, // الإيميل أو رقم الهاتف
-},
-);
-} on DioException catch (e) {
-return e.response ??
-Response(
-requestOptions: RequestOptions(path: ''),
-statusCode: 500,
-statusMessage: "خطأ في الاتصال بالسيرفر",
-);
-}
-}
+  Future<Response> requestPasswordReset({required String loginField}) async {
+    try {
+      return await _dio.post(
+        "/forgot-password", // الرابط اللي رح نعمله باللارافيل لاحقاً
+        data: {
+          "login_field": loginField, // الإيميل أو رقم الهاتف
+        },
+      );
+    } on DioException catch (e) {
+      return e.response ??
+          Response(
+            requestOptions: RequestOptions(path: ''),
+            statusCode: 500,
+            statusMessage: "خطأ في الاتصال بالسيرفر",
+          );
+    }
+  }
 
 //
 //
 //
 // 5. هي دالة ارسال الايميل ورمز التحقق على السيرفر لنسيت كلمة المرور
 
-Future<Response> verifyResetOtp({
-required String loginField,
-required String otpCode,
-}) async {
-try {
-return await _dio.post(
-"/verify-reset-otp", //هاد الرابط ه
-data: {"login_field": loginField, "otp_code": otpCode},
-);
-} on DioException catch (e) {
-return e.response ??
-Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
-}
-}
+  Future<Response> verifyResetOtp({
+    required String loginField,
+    required String otpCode,
+  }) async {
+    try {
+      return await _dio.post(
+        "/verify-reset-otp", //هاد الرابط ه
+        data: {"login_field": loginField, "otp_code": otpCode},
+      );
+    } on DioException catch (e) {
+      return e.response ??
+          Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+    }
+  }
 
 //
 //
 //
 // 6. دالة تحديث كلمة المرور الجديدة
-Future<Response>resetPassword({
-  required String loginField,
-  required String newPassword,
-}) async {
-  try {
-    return await _dio.post(
-      "/reset-password", // هاد الرابط
-      data: {"login_field": loginField, "password": newPassword},
-    );
-  } on DioException catch (e) {
-    return e.response ??
-        Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+  Future<Response>resetPassword({
+    required String loginField,
+    required String newPassword,
+  }) async {
+    try {
+      return await _dio.post(
+        "/reset-password", // هاد الرابط
+        data: {"login_field": loginField, "password": newPassword},
+      );
+    } on DioException catch (e) {
+      return e.response ??
+          Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+    }
   }
-}
+
+// 7. دالة تحديث بيانات الملف الشخصي في السيرفر (الداتابيز) تلقائياً
+  Future<Response> updateProfile({
+    required String name,
+    required String phone,
+    required String token,
+  }) async {
+    try {
+      return await _dio.put(
+        "/update-profile", // الرابط الجديد المتوقع باللارافيل
+        data: {
+          "name": name,
+          "phone": phone,
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // تمرير التوكن لتوثيق هوية الحساب التابع لكِ
+          },
+        ),
+      );
+    } on DioException catch (e) {
+      return e.response ??
+          Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+    }
+  }
 }

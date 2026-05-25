@@ -6,9 +6,10 @@ import 'login_screen.dart';
 import 'hom.dart'; // تأكدي من كتابة اسم الملف البرمجي الصحيح لصفحة الهوم
 void main() {
   runApp(
-    const MaterialApp(debugShowCheckedModeBanner: false, home: PullmanMainScreen()),
+    const MaterialApp(debugShowCheckedModeBanner: false, home: SplashScreen()),
   );//SplashScreen
   //PullmanMainScreen
+
 }
 
 class SplashScreen extends StatefulWidget {

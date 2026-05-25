@@ -41,6 +41,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.0  # لحتى لما المستخدم يكبس عالموقع الالكتروني يفتحلو الموقع عالخريطة
+  image_picker: ^1.2.2
+  file_picker: ^11.0.2
 cupertino_icons: ^1.0.8
 # أضيفيه هنا تماماً
 dev_dependencies:

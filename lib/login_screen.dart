@@ -13,23 +13,20 @@ import 'signup_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  //_LoginScreenState
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   //مفتاح النموذج: ضروري لتفعيل عملية التحقق (Validation) عند الضغط على الزر
-  //مفتاح النموذج تبع المتحكمات
   final _formKey = GlobalKey<FormState>();
 
-  //   .تعريف المتحكمات في بداية كلاس الشاشة مشان الربط/////////*********
+  // تعريف المتحكمات في بداية كلاس الشاشة مشان الربط
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
-  //////////////////////////////////////////////////////*********
+
   bool _isObscure = true;
-  bool _isLoggingIn =
-      false; //  (// هاد المتغير بحدد إذا الدائرة عم تفتل أو لا)متغير لحالة التحميل
+  bool _isLoggingIn = false; // متغير لحالة التحميل
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const RepaintBoundary(child: ImageSection()),
                   Positioned(
-                    //للانحناءات الي تحت الصورة
                     bottom: -1,
                     child: Container(
                       width: MediaQuery.of(context).size.width,
@@ -82,41 +78,35 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               Padding(
-                //تقليص الشاشة
                 padding: const EdgeInsets.symmetric(horizontal: 25),
                 child: Column(
                   children: [
                     _buildEmailField(
                       label: 'رقم الهاتف أو البريد الإلكتروني',
-
                       hint: 'أدخل رقمك أو بريدك الإلكتروني',
                       icon: Icons.email,
                       validator: (value) => (value == null || value.isEmpty)
                           ? 'يرجى ملء هذا الحقل '
                           : null,
-                      isEmail: true, // هون بنادي الحقل تبع الايميل
-
-                      controller: _emailController, //الجاسوس لهاد الحقل
+                      isEmail: true,
+                      controller: _emailController,
                       labelFontSize: 15,
                     ),
                     const SizedBox(height: 20),
 
-                    // استبدل سطر 92 في كودك بهذا السطر بالضبط:
                     _buildPasswordField(
                       controller: _passController,
                       labelFontSize: 15,
-                    ), // تم الربط مع المتحكم
+                    ),
 
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          // الانتقال لصفحة ادخال البريد الالكتروني
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const ForgotPasswordScreen(),
+                              builder: (context) => const ForgotPasswordScreen(),
                             ),
                           );
                         },
@@ -132,12 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 20),
 
-                    ///***************************************************
-                    //
-                    // استدعاء حقيقي لل  APIs
-                    ///****************************************************
-                    /////
-                    //
                     MyMainButton(
                       text: 'تسجيل الدخول',
                       isLoading: _isLoggingIn,
@@ -164,35 +148,31 @@ class _LoginScreenState extends State<LoginScreen> {
                             // 3. فحص رد السيرفر
                             if (response.statusCode == 200) {
                               // نجاح! (البيانات صحيحة)
-                              //
-                              //
-                              //
-                              // 1. استخراج التوكن من الرد
-                              String token = response.data['token'];
 
-                              // 2. حفظ التوكن وحالة الدخولش في ذاكرة الموبايل
-                              final SharedPreferences prefs =
-                                  await SharedPreferences.getInstance();
+                              // 1. استخراج التوكن وبيانات المستخدم القادمة من رد اللارافيل
+                              String token = response.data['token'];
+                              var userData = response.data['user']; // كائن بيانات المستخدم
+
+                              // 2. فتح ذاكرة الموبايل وحفظ كل البيانات تلقائياً
+                              final SharedPreferences prefs = await SharedPreferences.getInstance();
                               await prefs.setString('token', token);
                               await prefs.setBool('is_logged_in', true);
-                              //
-                              //
-                              //
+
+                              // حفظ البيانات المقروءة لتظهر في الملف الشخصي تلقائياً
+                              await prefs.setString('user_name', userData['name'] ?? '');
+                              await prefs.setString('user_email', userData['email'] ?? '');
+                              await prefs.setString('user_phone', userData['phone'] ?? '');
 
                               // الانتقال للصفحة الرئيسية
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      const PullmanMainScreen(),
+                                  builder: (context) => const PullmanMainScreen(),
                                 ),
                               );
                             } else {
-                              // فشل! (كلمة السر خطأ، الحساب غير مفعل، إلخ)
-                              // استخراج رسالة الخطأ من السيرفر
-                              String errorMsg =
-                                  response.data['message'] ??
-                                  "حدث خطأ في تسجيل الدخول";
+                              // فشل!
+                              String errorMsg = response.data['message'] ?? "حدث خطأ في تسجيل الدخول";
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -209,9 +189,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
 
-                    //
-                    //
-                    //
                     const SizedBox(height: 30),
                     const Row(
                       children: [
@@ -264,129 +241,79 @@ class _LoginScreenState extends State<LoginScreen> {
     required String label,
     required String hint,
     required IconData icon,
-
     bool isEmail = false,
-    double labelFontSize = 14, // قيمة افتراضية للحجم
-    ///////////**************
-    required TextEditingController
-    controller, //هاد السطر بخزن كلشي بدخلو المستخدم بالحقول بوخذها وبخزنها بالمتحكمات الي عرفتهن اول الكلاس تبع الشاشة
-    //////////////**************
+    double labelFontSize = 14,
+    required TextEditingController controller,
     required String? Function(String?) validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          label, //هون التعديل على حجم البريد الالكتروني الي فوق الحقل تبعو
+          label,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
             color: Colors.grey[100],
-
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.03),
                 blurRadius: 8,
-
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-
           child: TextFormField(
-            ////////////////////////****
-            controller: controller, //مشان الربط تبع المتحكمات
-            /////////*************
-            // تحديد نوع الكيبورد للإيميل (عشان تظهر علامة @)
-            // 1. تحديد نوع الكيبورد: خليه دائماً emailAddress لأنه بيشمل الأرقام والأحرف
-            keyboardType: isEmail
-                ? TextInputType.emailAddress
-                : TextInputType.text,
-
-            // 2. تحديد المحاذاة والاتجاه (ذكاء اصطناعي بسيط):
-            // إذا النص بيبدأ بـ "09" خليه يمين (لأنه رقم)، غير هيك خليه يسار (لأنه إيميل)
-            textAlign: controller.text.startsWith('09')
-                ? TextAlign.right
-                : TextAlign.left,
-            textDirection: controller.text.startsWith('09')
-                ? TextDirection.rtl
-                : TextDirection.ltr, // الاتجاه إنجليزي
+            controller: controller,
+            keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
+            textAlign: controller.text.startsWith('09') ? TextAlign.right : TextAlign.left,
+            textDirection: controller.text.startsWith('09') ? TextDirection.rtl : TextDirection.ltr,
             onChanged: (value) {
-              setState(
-                () {},
-              ); // هاد السطر بخلي الـ textAlign والـ textDirection يتحدثوا مع كل حرف بتكتبه
+              setState(() {});
             },
-            textInputAction: TextInputAction
-                .next, //---عشان الكيبورد يطلّع زر "التالي" وينقلني للحقل اللي بعده تلقائياً
-            ///////////////*****************
-            // --- منع العربي تماماً من الحقل ---
+            textInputAction: TextInputAction.next,
             inputFormatters: [
-              FilteringTextInputFormatter.deny(
-                RegExp(r'[أ-ي]'),
-              ), // منع أي حرف عربي فوراً
+              FilteringTextInputFormatter.deny(RegExp(r'[أ-ي]')),
             ],
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'يرجى ملء هذا الحقل';
               }
 
-              // التحقق من صيغة البريد الالكرتوني
-              final bool isEmail = RegExp(
-                r'^[a-zA-Z0-9.]+@gmail\.com$',
-              ).hasMatch(value);
-
-              // التحقق إذا كان المدخل "رقم هاتف" (يبدأ بـ 09 وطوله 10 وأرقام فقط)
+              final bool isEmail = RegExp(r'^[a-zA-Z0-9.]+@gmail\.com$').hasMatch(value);
               final bool isPhone = RegExp(r'^09[0-9]{8}$').hasMatch(value);
+
               if (isEmail) {
-                return null; // الإيميل صح
+                return null;
               } else if (isPhone) {
-                return null; // الرقم صح (يبدأ بـ 09 وطوله 10)
+                return null;
               } else {
-                // إذا لم يكن إيميل صحيح ولا رقم هاتف يبدأ بـ 09
                 return 'أدخل إيميل صحيح أو رقم هاتف يبدأ بـ 09 (10 أرقام)';
               }
             },
-
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.grey[100],
               hintText: hint,
-              //هون بقدر اتحكم بحجم النص الي داخل الحقل الي اني كاتبو
               hintStyle: const TextStyle(fontSize: 15, color: Colors.grey),
               suffixIcon: Icon(icon, color: Colors.grey),
-              //الحدود العادية///
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none,
               ),
-
-              ///
-
-              // --- الحدود عند حدوث خطأ (تصير أحمر) ---
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(
-                  color: Colors.red,
-                  width: 1,
-                ), // حدود حمراء
+                borderSide: const BorderSide(color: Colors.red, width: 1),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(
-                  color: Colors.red,
-                  width: 2,
-                ), // حدود حمراء أعرض عند الضغط
+                borderSide: const BorderSide(color: Colors.red, width: 2),
               ),
-              //لون رسالة التنبيه
               errorStyle: const TextStyle(fontSize: 12, color: Colors.red),
-              // ----------------------------------------------
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 15,
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             ),
           ),
         ),
@@ -399,7 +326,6 @@ class _LoginScreenState extends State<LoginScreen> {
     double labelFontSize = 14,
     required TextEditingController controller,
   }) {
-    // ضيف الكنترول هون
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -410,11 +336,11 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey[100], //هون بقدر اغمق الحقل
+            color: Colors.grey[100],
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03), // نفس الظل الخفيف
+                color: Colors.black.withOpacity(0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -422,30 +348,18 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           child: TextFormField(
             controller: controller,
-            textAlign: TextAlign.left, // كلمة السر تبدأ يسار
+            textAlign: TextAlign.left,
             textDirection: TextDirection.ltr,
-            textInputAction: TextInputAction
-                .done, // مشان يقلب زر التالي الي بلوحة المفاتيح الى تم في اخر حقل
+            textInputAction: TextInputAction.done,
             obscureText: _isObscure,
-            ///////////////*****************
-            // --- منع العربي تماماً من الحقل ---
             inputFormatters: [
-              FilteringTextInputFormatter.deny(
-                RegExp(r'[أ-ي]'),
-              ), // منع أي حرف عربي فوراً
+              FilteringTextInputFormatter.deny(RegExp(r'[أ-ي]')),
             ],
-            validator: (value) => (value == null || value.length < 6)
-                ? 'يرجى ملء هذا الحقل'
-                : null,
+            validator: (value) => (value == null || value.length < 6) ? 'يرجى ملء هذا الحقل' : null,
             decoration: InputDecoration(
               hintText: 'أدخل كلمة السر',
-              hintStyle: TextStyle(
-                color: Colors
-                    .grey, //هون بقدر اتحكم بحجم النص الي داخل الحقل الي اني كاتبو
-                fontSize: 15,
-              ),
-              hintTextDirection:
-                  TextDirection.rtl, // كلمة السر يمين قبل الكتابة
+              hintStyle: const TextStyle(color: Colors.grey, fontSize: 15),
+              hintTextDirection: TextDirection.rtl,
               suffixIcon: const Icon(Icons.lock, color: Colors.grey),
               prefixIcon: IconButton(
                 icon: Icon(
@@ -455,27 +369,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () => setState(() => _isObscure = !_isObscure),
               ),
               border: InputBorder.none,
-
-              // --- الحدود عند حدوث خطأ (تصير أحمر) ---
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(
-                  color: Colors.red,
-                  width: 1,
-                ), // حدود حمراء
+                borderSide: const BorderSide(color: Colors.red, width: 1),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
-                borderSide: const BorderSide(
-                  color: Colors.red,
-                  width: 2,
-                ), // حدود حمراء أعرض عند الضغط
+                borderSide: const BorderSide(color: Colors.red, width: 2),
               ),
-              //لون رسالة التنبيه
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 15,
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             ),
           ),
         ),
@@ -485,12 +387,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // هاد المكان الصح لأن المتحكمات معرفة داخل هاد الكلاس
     _emailController.dispose();
     _passController.dispose();
     super.dispose();
   }
-} // <--- هاد قوس إغلاق كلاس _LoginScreenState
+}
 
 class ImageSection extends StatelessWidget {
   const ImageSection({super.key});
