@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart'; // ستحتاجين لاستيراد مكتبة Dio للاتصال بالباك أند
+import 'package:shared_preferences/shared_preferences.dart'; // 💡 تم استيراد المكتبة لقراءة توكن الجلسة بأمان
 
 class PaymentGatewayScreen extends StatefulWidget {
   final int totalAmount;
@@ -85,10 +86,21 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
     };
 
     try {
-      // إرسال الطلب عبر الـ IP المحلي المعتمد لبيئة متصفح الكروم
+      // 💡 خطوة ذكية: استخراج التوكن الخاص بالمستخدم المسجل دخوله حالياً لربطه مع طلب الحجز ديناميكياً بالباك أند
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userToken = prefs.getString('token'); // مطابقة تامة للاسم المكتشف بملف login_screen
+
+      // إرسال الطلب عبر الـ IP المحلي المعتمد لبيئة متصفح الكروم مع تضمين هيدرز الحماية والتوكن
       final response = await _dio.post(
-        'http://localhost:8000/api/store-booking',
+        'http://10.180.125.108:8000/api/store-booking',
         data: requestData,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            if (userToken != null) 'Authorization': 'Bearer $userToken', // تمرير توكن المصادقة لـ لارافيل سانكتوم
+          },
+        ),
       );
 
       setState(() => _isProcessing = false);
