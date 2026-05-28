@@ -1,80 +1,39 @@
 import 'package:flutter/material.dart';
 
-class TicketDetailsScreen extends StatelessWidget {
+class TicketDetailsScreen extends StatefulWidget {
+  // 👈 إضافة المتغير لاستقبال بيانات الحجز الحقيقية من واجهة رحلاتي
+  final dynamic bookingData;
   final VoidCallback onBack;
 
-  const TicketDetailsScreen({super.key, required this.onBack});
+  // 👈 تحديث الباني ليتضمن المتغير الجديد
+  const TicketDetailsScreen({super.key, this.bookingData, required this.onBack});
 
-  // --- دالة إظهار واجهة التقييم (مثل الصورة تماماً) ---
-  void _showRatingDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("قييم الرحلة",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 15),
-                // النجوم (هنا عرض ثابت، يمكنك استخدام مكتبة stars_rating لاحقاً للتفاعل)
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.star_border, color: Colors.grey, size: 35),
-                    Icon(Icons.star_border, color: Colors.grey, size: 35),
-                    Icon(Icons.star_border, color: Colors.grey, size: 35),
-                    Icon(Icons.star_border, color: Colors.grey, size: 35),
-                    Icon(Icons.star_border, color: Colors.grey, size: 35),
-                  ],
-                ),
-                const SizedBox(height: 15),
-                // حقل التعليق
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: "أكتب تعليق...",
-                    filled: true,
-                    fillColor: Colors.grey[100],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 20),
-                // زر إرسال
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // إغلاق الواجهة
-                    // إظهار رسالة النجاح
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("تم ارسال التعليق بنجاح", textAlign: TextAlign.center),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    minimumSize: const Size(120, 45),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: const Text("إرسال", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  @override
+  State<TicketDetailsScreen> createState() => _TicketDetailsScreenState();
+}
+
+class _TicketDetailsScreenState extends State<TicketDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // استخراج مصفوفة الحجز لتسهيل قراءة البيانات الحقيقية داخل الـ Widgets
+    final data = widget.bookingData;
+
+    // استخراج قائمة الركاب الحقيقية القادمة من جدول booking_seats
+    final List<dynamic> passengers = data != null && data['passengers'] != null
+        ? data['passengers']
+        : [];
+
+    // 🌟 دالة لتنظيف نص الوقت من حرف "أ" أو "م" والمسافات الزائدة ليعود أرقاماً صافية فقط
+    String getCleanTime() {
+      if (data == null || data['scheduled_time'] == null) return "08:00";
+      return data['scheduled_time']
+          .toString()
+          .replaceAll('أ', '')
+          .replaceAll('م', '')
+          .trim();
+    }
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -86,7 +45,7 @@ class TicketDetailsScreen extends StatelessWidget {
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: onBack,
+            onPressed: widget.onBack, // تعديل للوصول للـ Callback من الـ State
           ),
         ),
         body: SingleChildScrollView(
@@ -97,11 +56,13 @@ class TicketDetailsScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("السراج للسياحة والسفر", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    CircleAvatar(backgroundColor: Color(0xFF1C2E4A), child: Icon(Icons.bus_alert, color: Colors.orange, size: 20)),
+                    // عرض اسم الشركة الحقيقي المجلوب من داتابيز اللارافيل ديناميكياً
+                    Text(data != null ? data['company_name'].toString() : "السراج للسياحة والسفر",
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const CircleAvatar(backgroundColor: Color(0xFF1C2E4A), child: Icon(Icons.bus_alert, color: Colors.orange, size: 20)),
                   ],
                 ),
               ),
@@ -112,28 +73,37 @@ class TicketDetailsScreen extends StatelessWidget {
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15)),
                 child: Column(
                   children: [
-                    _buildRouteSection(),
+                    // تمرير بيانات المدن الحقيقية للدالة الفرعية للراوت
+                    _buildRouteSection(
+                        data != null ? data['from_city'].toString() : "درعا",
+                        data != null ? data['to_city'].toString() : "دمشق"
+                    ),
                     const Divider(height: 30),
-                    _buildInfoRow("الحساب", "محمد المحمد"),
-                    _buildPassengerInfo("اسم الراكب الأول", "محمد المحمد", "16", "T_12345_1"),
-                    _buildPassengerInfo("اسم الراكب الثاني", "سعيد المحسن", "17", "T_12345_2"),
+
+                    // توليد وعرض ركاب التذكرة بشكل ديناميكي (Loop) بناءً على جدول booking_seats الحقيقي
+                    if (passengers.isNotEmpty)
+                      ...passengers.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        var passenger = entry.value;
+                        return _buildPassengerInfo(
+                            "اسم الراكب رقم ${index + 1}",
+                            passenger['passenger_name'].toString(),
+                            passenger['seat_number'].toString(),
+                            // توليد رقم تذكرة فرعي احترافي بناءً على الرقم المرجعي وآيدي المقعد
+                            "${data['reference_number']}_${passenger['seat_number']}"
+                        );
+                      })
+                    else
+                    // في حال عدم وجود ركاب (حالة احتياطية افتراضية)
+                      _buildPassengerInfo("اسم الراكب", "لا يوجد ركاب مسجلين", "0", "0000"),
+
                     const Divider(),
-                    _buildInfoRow("التاريخ", "mm/dd/yyyy"),
-                    _buildInfoRow("الوقت", "08:00 ص"),
+                    // ربط التاريخ والوقت والتكلفة والرقم المرجعي الفعلي بالبيانات القادمة من السيرفر
+                    _buildInfoRow("التاريخ", data != null ? data['travel_date'].toString() : "mm/dd/yyyy"),
+                    _buildInfoRow("الوقت", getCleanTime()), // 🌟 تم تمرير الوقت النظيف هنا لحل مشكلة حرف أ
                     const Divider(),
-                    _buildInfoRow("تكلفة الحجز كاملة", "800 ل.س", isPrice: true),
-                    _buildInfoRow("رقم الحجز المرجعي", "REF_8776764"),
-                    const SizedBox(height: 25),
-                    // زر التقييم الذي يفتح الواجهة
-                    ElevatedButton(
-                      onPressed: () => _showRatingDialog(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        minimumSize: const Size(120, 45),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                      ),
-                      child: const Text("تقييم", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    )
+                    _buildInfoRow("تكلفة الحجز كاملة", data != null ? "${data['total_price']} ل.س" : "0 ل.س", isPrice: true),
+                    _buildInfoRow("رقم الحجز المرجعي", data != null ? data['reference_number'].toString() : "REF_8776764"),
                   ],
                 ),
               ),
@@ -144,18 +114,18 @@ class TicketDetailsScreen extends StatelessWidget {
     );
   }
 
-  // الـ Widgets المساعدة (نفس اللي كانت عندك)
-  Widget _buildRouteSection() {
+  // الـ Widgets المساعدة (نفس اللي كانت عندك مع جعل خط السير يستقبل بارامترات ديناميكية)
+  Widget _buildRouteSection(String fromCity, String toCity) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(children: [Text("درعا", style: TextStyle(fontWeight: FontWeight.bold))]),
+        Column(children: [Text(fromCity, style: const TextStyle(fontWeight: FontWeight.bold))]),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(10)),
           child: const Text("مدة الرحلة: 2 ساعات", style: TextStyle(color: Colors.white, fontSize: 10)),
         ),
-        const Column(children: [Text("دمشق", style: TextStyle(fontWeight: FontWeight.bold))]),
+        Column(children: [Text(toCity, style: const TextStyle(fontWeight: FontWeight.bold))]),
       ],
     );
   }

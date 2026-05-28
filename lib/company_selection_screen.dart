@@ -97,7 +97,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
   Future<void> _fetchRoutes() async {
     try {
       final response = await Dio().get(
-        'http://localhost:8000/api/search-trips',
+        'http://10.180.125.108:8000/api/search-trips',
         queryParameters: {
           'from_id': widget.fromCityId,
           'to_id': widget.toCityId,
@@ -135,7 +135,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: lightGreyBackground, // تطبيق الخلفية الناعمة المعتمدة
+        backgroundColor: lightGreyBackground, // تطبيق Background المعتمدة
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0.5,
@@ -237,6 +237,7 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
           Map<String, dynamic> companyToPass = Map.from(route.fullCompanyData);
           companyToPass['logo_url_full'] = route.companyLogo;
           companyToPass['route_id'] = route.id;
+          companyToPass['price'] = route.price; // 👈 🌟 تمرير السعر داخل الخريطة الممررة لشاشة التفاصيل لضمان عدم ضياعه
 
           Navigator.push(context, MaterialPageRoute(builder: (context) => CompanyInfoScreen(
             company: companyToPass,
@@ -283,6 +284,5 @@ class _CompanySelectionScreenState extends State<CompanySelectionScreen> {
     );
   }
 
-  // تعريف لون الرموز غير النشطة بشكل جانبي لتفادي الأخطاء البنائية
   Color get darkGrey => Colors.grey[600]!;
 }

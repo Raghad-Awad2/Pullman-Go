@@ -40,10 +40,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   // 🎨 تحديث الألوان الفخمة الموحدة للتطبيق دون المساس بأي منطق برمي
   final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق الفخم للـ AppBar والنصوص الأساسية
   final Color accentIceBlue = const Color(0xFF162D4A);     // لون الأزرار والمقاعد المحددة النشطة
-  final Color iceAvailableSeat = const Color(0xFFD4E6F1);  // لون جليدي ناعم ومريح للمقاعد المتاحة
+  final Color iceAvailableSeat = const Color(0xFF8DBAD9);  // 🌟 تم تغميقه ليصبح التباين واضحاً جداً مقارنة بالمحجوز الرمادي
 
   List<int> selectedSeats = [];
-  List<int> reservedSeats = [];
+
+  // 💡 التعديل 1: تحويل نوع القائمة إلى String لتتوافق مع الـ API النظيف وقاعدة البيانات
+  List<String> reservedSeats = [];
   bool isSeatsLoading = true;
 
   late String currentSelectedDate;
@@ -61,32 +63,61 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       return;
     }
 
-    // 💡 حماية برمجية: فحص التاريخ والتأكد من أنه ليس فارغاً أو نص "null" لتفادي خطأ الـ Dio
     String travelDateParam = widget.selectedDate.trim();
+
+    // 🛠️ معالجة التاريخ وإصلاح الصيغة المائلة (مثال: من 29/5/2026 إلى 2026-05-29) ليتوافق مع لارافيل
+    try {
+      if (travelDateParam.contains('/')) {
+        List<String> parts = travelDateParam.split('/');
+        if (parts.length == 3) {
+          String day = parts[0].padLeft(2, '0');
+          String month = parts[1].padLeft(2, '0');
+          String year = parts[2];
+          travelDateParam = "$year-$month-$day";
+        }
+      }
+    } catch (e) {
+      print("⚠️ فشل في إعادة صياغة التاريخ: $e");
+    }
+
     if (travelDateParam.isEmpty || travelDateParam == "null") {
       DateTime now = DateTime.now();
       travelDateParam = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
     }
 
+    // 🔬 طباعة 1: نتأكد من المتغيرات المرسلة فعلياً للرابط والـ IP الجديد بعد ضبط التاريخ
+    print("🚀 [فلاتر] إرسال طلب إلى: http://10.180.125.108:8000/api/get-reserved-seats?trip_id=${widget.tripId}&travel_date=$travelDateParam");
+
     try {
       final response = await Dio().get(
-        'http://127.0.0.1:8000/api/get-reserved-seats',
+        'http://10.180.125.108:8000/api/get-reserved-seats',
         queryParameters: {
           'trip_id': widget.tripId,
-          'travel_date': travelDateParam, // 👈 إرسال القيمة المحمية والمفحوصة
+          'travel_date': travelDateParam,
         },
       );
 
+      // 🔬 طباعة 2: نرى النتيجة الخام القادمة من السيرفر بالتفصيل
+      print("📥 [لارافيل] الاستجابة الخام القادمة من السيرفر: ${response.data}");
+
       if (response.data['status'] == true) {
         setState(() {
-          reservedSeats = List<int>.from(response.data['reserved_seats'] ?? []);
+          // 💡 التعديل 2: استقبال السجلات كـ String لضمان عدم حدوث الانهيار عند التحويل
+          reservedSeats = List<String>.from(
+              (response.data['reserved_seats'] ?? []).map((seat) => seat.toString().trim())
+          );
           isSeatsLoading = false;
         });
+
+        // 🔬 طباعة 3: نرى القائمة النهائية بعد تخزينها بمتغير فلاتر
+        print("✅ [فلاتر] مصفوفة المقاعد المحجوزة المخزنة في التطبيق الآن: $reservedSeats");
       } else {
+        print("⚠️ [لارافيل] السيرفر أرجع status مساوي لـ false");
         setState(() => isSeatsLoading = false);
       }
     } catch (e) {
-      print("Error fetching reserved seats: $e");
+      // 🔬 طباعة 4: لمعرفة لو كان هناك مشكلة بالشبكة، جدار الحماية (Firewall) أو كود الـ API
+      print("❌ [فلاتر] حدث خطأ أو فشل بالاتصال بالـ API: $e");
       setState(() => isSeatsLoading = false);
     }
   }
@@ -132,14 +163,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       }
     }
 
-    String displayFromStation = (widget.fromStation != null && widget.fromStation!.isNotEmpty)
-        ? widget.fromStation!
-        : "كراجات شرقي_غربي";
-
-    String displayToStation = (widget.toStation != null && widget.toStation!.isNotEmpty)
-        ? widget.toStation!
-        : "نهر عيشة";
-
+    String displayFromStation = (widget.fromStation != null && widget.fromStation!.isNotEmpty) ? widget.fromStation! : "كراجات شرقي_غربي";
+    String displayToStation = (widget.toStation != null && widget.toStation!.isNotEmpty) ? widget.toStation! : "نهر عيشة";
     String formattedTime = _formatTo12Hour(widget.tripTime);
 
     int rowCount = (activeTotalSeats / 4).ceil();
@@ -148,7 +173,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F6F9), // خلفية ناعمة فخمة ومتناسقة
+        backgroundColor: const Color(0xFFF4F6F9),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0.5,
@@ -420,7 +445,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Widget _buildIndependentSeatItem(int seatNum) {
-    bool isReserved = reservedSeats.contains(seatNum);
+    bool isReserved = reservedSeats.contains(seatNum.toString());
     bool isSelected = selectedSeats.contains(seatNum);
 
     Color iconColor = isReserved
@@ -471,7 +496,11 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Widget _buildSeatStats(int totalActualSeats) {
-    int reservedCount = reservedSeats.where((s) => s <= totalActualSeats).length;
+    int reservedCount = reservedSeats.where((s) {
+      int? num = int.tryParse(s);
+      return num != null && num <= totalActualSeats;
+    }).length;
+
     int availableCount = totalActualSeats - reservedCount;
 
     return Container(
@@ -481,7 +510,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _statBox("متاح", availableCount.toString(), iceAvailableSeat),
-          _statBox("محجوز", reservedCount.toString(), Colors.grey.shade300), // 👈 تم إصلاح تمرير المتغير هنا ليظهر العدد بشكل صحيح
+          _statBox("محجوز", reservedCount.toString(), Colors.grey.shade300),
           _statBox("محدد", selectedSeats.length.toString(), accentIceBlue),
         ],
       ),

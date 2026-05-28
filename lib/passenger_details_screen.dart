@@ -34,7 +34,6 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
   static const Color accentIceBlue = Color(0xFF162D4A);
   static const Color backgroundColor = Color(0xFFF4F6F9);
 
-  final TextEditingController phoneController = TextEditingController();
   final List<TextEditingController> nameControllers = [];
   final ScrollController _scrollController = ScrollController();
 
@@ -60,16 +59,14 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
     }
   }
 
+  // 🌟 تحديث الشرط: يعتمد فقط على إدخال جميع أسماء الركاب
   bool _isAllDataEntered() {
-    bool isPhoneEntered = phoneController.text.length == 9;
-    bool areNamesEntered = nameControllers.every((controller) => controller.text.trim().isNotEmpty);
-    return isPhoneEntered && areNamesEntered;
+    return nameControllers.every((controller) => controller.text.trim().isNotEmpty);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    phoneController.dispose();
     for (var controller in nameControllers) {
       controller.dispose();
     }
@@ -157,10 +154,7 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionTitle(Icons.contact_phone_outlined, "معلومات الاتصال (لصاحب الحساب)"),
-                const SizedBox(height: 15),
-                _buildNewPhoneField(),
-                const SizedBox(height: 35),
+                // ✂️ تم حذف قسم معلومات الاتصال ورقم الهاتف بالكامل من هنا لتبدأ الواجهة بتفاصيل الركاب فوراً
                 Row(
                   children: [
                     const Expanded(child: Divider(endIndent: 10, thickness: 1, color: Color(0xFFEAEDF2))),
@@ -181,52 +175,6 @@ class _PassengerDetailsScreenState extends State<PassengerDetailsScreen> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: _buildConfirmButton(),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, color: accentIceBlue, size: 18),
-        const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryNavy)),
-      ],
-    );
-  }
-
-  Widget _buildNewPhoneField() {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: primaryNavy.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))], border: Border.all(color: const Color(0xFFEAEDF2))),
-      child: Row(
-        children: [
-          Expanded(
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: TextField(
-                controller: phoneController,
-                onChanged: (val) => setState(() {}),
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.left,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(9), FilteringTextInputFormatter.deny(RegExp(r'^0'))],
-                style: const TextStyle(fontSize: 15, letterSpacing: 2.0, fontWeight: FontWeight.w600, color: primaryNavy),
-                decoration: const InputDecoration(hintText: "9xxxxxxxxx", hintStyle: TextStyle(color: Colors.grey, fontSize: 14, letterSpacing: 1.0), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 16)),
-              ),
-            ),
-          ),
-          Container(width: 1, height: 22, color: Colors.grey.withOpacity(0.3)),
-          Padding(
-            padding: const EdgeInsets.only(left: 15, right: 10),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("+963", style: TextStyle(color: primaryNavy, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5)),
-                const SizedBox(width: 6),
-                Icon(Icons.phone_android_rounded, color: accentIceBlue.withOpacity(0.7), size: 20),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

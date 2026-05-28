@@ -51,10 +51,9 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
   }
 
 
-
-  // 🎨 فلسفة تدرج الكحلي المنساب (Monochromatic Navy Gradient Core) - تم تغميقها درجة واحدة بدقة
-  final Color primaryNavy = const Color(0xFF050E1A);       // الكحلي الغامق جداً (بداية التدرج من الأعلى)
-  final Color accentIceBlue = const Color(0xFF162D4A);     // 👈 آخر درجة في التدرج (لون الأزرار والرموز النشطة متطابق تماماً)
+// 🎨 فلسفة تدرج الأخضر الغامق الملكي (Royal Deep Green Theme) - تعديل هندسي فخم
+  final Color primaryNavy = const Color(0xFF06140D);       // أخضر غامق جداً (شبه أسود) - يبدأ من الأعلى
+  final Color accentIceBlue = const Color(0xFF1E7A4D);     // أخضر ملكي عميق وغامق - ينتهي عنده التدريج وهو لون الزر والرموز النشطة👈 آخر درجة في التدرج (لون الأزرار والرموز النشطة متطابق تماماً)
   final Color lightGreyBackground = const Color(0xFFF4F6F9); // خلفية التطبيق رمادي ناعم
   final Color darkGrey = Colors.grey[600]!;
 
@@ -110,10 +109,17 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
           headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
             return <Widget>[
               SliverAppBar(
-                expandedHeight: 180.0,
+                expandedHeight: 130.0, // 👈 تم تقليل الارتفاع الكلي لتقليص المساحة الخضراء ورفع المحتوى
                 pinned: true,
                 elevation: 0,
-                backgroundColor: Colors.transparent,
+                // 1. إضافة الانحناء السفلي الذكي للشريط التدرجي بأكمله
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(50.0),
+                    bottomRight: Radius.circular(50.0),
+                  ),
+                ),
+                backgroundColor: primaryNavy,
                 leadingWidth: 200,
                 leading: Padding(
                   padding: const EdgeInsets.only(right: 16.0),
@@ -123,17 +129,21 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
                       InkWell(
                         onTap: () => setState(() => _pageIndex = 0),
                         child: CircleAvatar(
-                            backgroundColor: Colors.white.withOpacity(0.12),
-                            child: const Icon(Icons.person, color: Colors.white)
+                          radius: 18, // تصغير متناسق لحجم الدائرة
+                          backgroundColor: Colors.white.withOpacity(0.15),
+                          child: const Icon(Icons.person, color: Colors.white, size: 20),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Column( // 👈 تم حذف const من هنا لكي يعمل المتغير ديناميكياً
+                      Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text("مرحباً بعودتك", style: TextStyle(color: Colors.white70, fontSize: 10)), // أضفنا const هنا للنص الثابت
-                          Text(userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)), // 👈 هنا سيعرض اسم المسافر الحقيقي!
+                          const Text("مرحباً بعودتك", style: TextStyle(color: Colors.white70, fontSize: 10)),
+                          Text(
+                              userName,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)
+                          ),
                         ],
                       ),
                     ],
@@ -141,7 +151,7 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
                 ),
                 actions: [
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+                    icon: const Icon(Icons.menu, color: Colors.white, size: 26),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     onSelected: (value) {
                       if (value == 'notifications') {
@@ -159,31 +169,41 @@ class _PullmanMainScreenState extends State<PullmanMainScreen> {
                   const SizedBox(width: 8),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: true,
-                  titlePadding: const EdgeInsets.only(bottom: 25),
-                  title: Text(_getAppBarTitle(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                   background: Container(
                     decoration: BoxDecoration(
-                      // تطبيق التدرج الكحلي الذكي المعدل من الأغمق للأفتح عند الحافة السفلية
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          primaryNavy,    // اغمق شي فوق
-                          accentIceBlue,  // الدرجة المعدلة تحت (وهي نفس لون زر البحث تماماً)
+                        colors: [primaryNavy, accentIceBlue],
+                      ),
+                    ),
+                    // 👈 تعديل الـ padding لجعل الكرت قريباً جداً من الأعلى ومرفوعاً عن الأسفل
+                    padding: const EdgeInsets.only(top: 70.0, left: 24.0, right: 24.0, bottom: 8.0),
+                    child: Container(
+                      // 👈 الكرت الأبيض بحجم أصغر وملموم
+                      height: 45,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25.0), // زوايا أنعم تناسب الحجم المصغر
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
                         ],
                       ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(30.0),
-                        bottomRight: Radius.circular(30.0),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: primaryNavy.withOpacity(0.15),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
+                      // 👈 استخدام Center لضمان تموضع النص في منتصف الكرت تماماً وبشكل هندسي متوازن
+                      child: Center(
+                        child: Text(
+                          _getAppBarTitle(),
+                          style: TextStyle(
+                            color: primaryNavy,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16, // تصغير حجم الخط ليناسب مقاس الكرت الجديد
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),

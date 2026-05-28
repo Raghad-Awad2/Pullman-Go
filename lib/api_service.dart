@@ -185,4 +185,41 @@ class ApiService {
           Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
     }
   }
+
+
+
+
+  // 8. دالة جلب رحلات المستخدم القادمة والسابقة باستخدام التوكن (أضيفيها في أسفل الكلاس)
+  Future<Response> getUserTrips({required String token}) async {
+    try {
+      return await _dio.get(
+        "/user-trips", // الرابط الجديد المحمي داخل الجروب
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // تمرير التوكن ليعرف السيرفر تلقائياً من هو المستخدم
+          },
+        ),
+      );
+    } on DioException catch (e) {
+      return e.response ??
+          Response(requestOptions: RequestOptions(path: ''), statusCode: 500);
+    }
+  }
+
+//دالة حذف رحلة
+  Future<Response> cancelUserBooking({required String token, required int bookingId}) async {
+    return await _dio.post(
+      'http://10.180.125.108:8000/api/cancel-booking',
+      data: {
+        'booking_id': bookingId,
+      },
+      options: Options(
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', // تمرير التوكن ليتعرف لارافيل على صاحب الحجز
+        },
+      ),
+    );
+  }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart'; // ستحتاجين لاستيراد مكتبة Dio للاتصال بالباك أند
 import 'package:shared_preferences/shared_preferences.dart'; // 💡 تم استيراد المكتبة لقراءة توكن الجلسة بأمان
-
+import 'hom.dart'; // 👈 عدليها لتصبح هكذا
 class PaymentGatewayScreen extends StatefulWidget {
   final int totalAmount;
   final List<Map<String, dynamic>> passengerList;
@@ -431,8 +431,19 @@ class _PaymentGatewayScreenState extends State<PaymentGatewayScreen> {
                   width: double.infinity,
                   height: 46,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                    style: ElevatedButton.styleFrom(backgroundColor: primaryNavy, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), elevation: 2),
+                    onPressed: () {
+                      // 🚀 الانتقال لشاشة الرئيسية وحذف كل الشاشات السابقة من الذاكرة بأمان
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PullmanMainScreen()), // 💡 تم التوجيه لشاشتكِ الفوق
+                            (route) => false, // هذا السطر يضمن تصفير كل الـ Stack لمنع الرجوع
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryNavy,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 2
+                    ),
                     child: const Text("الانتقال إلى الرئيسية", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ),

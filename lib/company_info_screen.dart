@@ -39,7 +39,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
     isFavorite = widget.isInitiallyFavorite;
   }
 
-  // دالة فتح الروابط الخارجية (تصميمك الأصلي)
+  // دالة فتح الروابط الخارجية
   Future<void> _launchURL(String? urlString) async {
     if (urlString == null || urlString.isEmpty || urlString == 'null') {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -152,7 +152,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
 
               Text(
                 widget.company['name'] ?? "اسم الشركة غير متوفر",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: primaryNavy), // ربط الاسم باللون الرئيسي للفخامة
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: primaryNavy),
               ),
 
               const SizedBox(height: 8),
@@ -241,6 +241,11 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                           ? int.tryParse(widget.company['route_id'].toString())
                           : null;
 
+                      // 👈 🌟 التقاط السعر من الخريطة بشكل آمن وتحويله إلى رقم ليمر بسلام للمواعيد
+                      final int? parsedPrice = widget.company['price'] != null
+                          ? int.tryParse(widget.company['price'].toString())
+                          : null;
+
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -253,6 +258,7 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
                             toCity: widget.toCity,
                             selectedDate: widget.selectedDate,
                             dayIndex: dayIndex,
+                            tripPrice: parsedPrice, // 👈 🌟 تمرير السعر الجديد لكسر ثبات الـ 400
                           ),
                         ),
                       );
@@ -277,7 +283,6 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
     );
   }
 
-  // --- ويدجت الميزات بالتناسق الكحلي الجديد ---
   Widget _buildBadge(String label) {
     Map<String, String> translation = {
       'comfortable_seats': 'مقاعد مريحة',
@@ -308,7 +313,6 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
     );
   }
 
-  // --- ويدجت المعلومات بالتناسق الكحلي الجديد ---
   Widget _buildModernTile({required IconData icon, required String title, required String value, bool isLink = false}) {
     return Container(
       padding: const EdgeInsets.all(16),

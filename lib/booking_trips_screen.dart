@@ -11,6 +11,7 @@ class BookingTripsScreen extends StatefulWidget {
   final String toCity;
   final String selectedDate;
   final int dayIndex;
+  final int? tripPrice; // 👈 🌟 استقبال السعر الممرر ديناميكياً من شاشة تفاصيل الشركة
 
   const BookingTripsScreen({
     super.key,
@@ -22,6 +23,7 @@ class BookingTripsScreen extends StatefulWidget {
     required this.toCity,
     required this.selectedDate,
     required this.dayIndex,
+    this.tripPrice, // 👈 إضافته للمشيد
   });
 
   @override
@@ -301,7 +303,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
             // 💡 التقاط رقم الباص بالاعتماد على الحقل الصحيح في جدول الـ buses المكتوب بـ 3 n
             String dynamicBusNumber = (busData['bus_numbernnn'] ?? tripData['bus_numbernnn'] ?? "غير محدد").toString();
 
-            // 💡 الفحص الشامل والمستقر لاستخراج السعر base_price بدقة ومنع الـ null أو الـ 0
+            // 💡 آليّة الدفاع المزدوج: فحص حقول الـ API أولاً، وإذا كانت فارغة نعتمد كلياً على السعر الممرر المضمون
             int realPrice = 0;
             var rawPrice = routeData['base_price'] ?? tripData['base_price'] ?? tripData['price'];
             if (rawPrice != null) {
@@ -310,6 +312,11 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
               } else {
                 realPrice = double.tryParse(rawPrice.toString())?.toInt() ?? 0;
               }
+            }
+
+            // إذا خرج السعر من الـ API بـ 0، نستخدم فوراً السعر القادم من واجهة الشركات المضمون
+            if (realPrice == 0 && widget.tripPrice != null) {
+              realPrice = widget.tripPrice!;
             }
 
             Navigator.push(
@@ -326,7 +333,7 @@ class _BookingTripsScreenState extends State<BookingTripsScreen> {
                   companyName: widget.companyName,
                   totalSeats: dynamicTotalSeats,
                   busNumber: dynamicBusNumber,
-                  tripPrice: realPrice, // 👈 تمرير السعر الملتقط بشكل دقيق
+                  tripPrice: realPrice, // 👈 السعر الحقيقي المستقر والديناميكي تماماً
                 ),
               ),
             );
